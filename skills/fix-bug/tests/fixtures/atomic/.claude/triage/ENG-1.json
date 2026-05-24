@@ -1,0 +1,20 @@
+{
+  "source": "linear",
+  "id": "ENG-1",
+  "url": "https://linear.app/acme/issue/ENG-1/login-button-broken",
+  "title": "Login button does not submit",
+  "author": "ada",
+  "assignee": "ada",
+  "status": "in_progress",
+  "labels": ["bug"],
+  "issue_type": "Bug",
+  "description": "The submit button in src/components/LoginButton.tsx does not fire onClick when the form is valid. Repro: open the login page, enter valid credentials, click Sign in. Expected: form submits. Actual: nothing happens. Look at src/lib/auth.ts as well.",
+  "acceptance_criteria": [
+    "Clicking Sign in submits the form when fields are valid"
+  ],
+  "comments": [],
+  "comments_total": 0,
+  "related": [],
+  "prior_attempts": [],
+  "classification": { "type": "bug", "rule": "label", "confidence": "high" }
+}

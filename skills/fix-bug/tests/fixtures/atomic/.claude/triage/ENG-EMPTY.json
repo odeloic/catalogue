@@ -1,0 +1,18 @@
+{
+  "source": "linear",
+  "id": "ENG-EMPTY",
+  "url": "https://linear.app/acme/issue/ENG-EMPTY",
+  "title": "Something is wrong",
+  "author": "ada",
+  "assignee": null,
+  "status": "in_progress",
+  "labels": ["bug"],
+  "issue_type": "Bug",
+  "description": "",
+  "acceptance_criteria": [],
+  "comments": [],
+  "comments_total": 0,
+  "related": [],
+  "prior_attempts": [],
+  "classification": { "type": "bug", "rule": "label", "confidence": "low" }
+}

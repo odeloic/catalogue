@@ -1,0 +1,33 @@
+{
+  "source": "github",
+  "id": "42",
+  "url": "https://github.com/odeloic/jonas/pull/42",
+  "title": "fix: handle empty cart in checkout summary",
+  "author": "odeloic",
+  "is_draft": false,
+  "base": { "ref": "main", "sha": "a1b2c3d4e5f6" },
+  "head": { "ref": "fix/empty-cart-checkout", "sha": "f6e5d4c3b2a1" },
+  "diff": "diff --git a/src/checkout/summary.ts b/src/checkout/summary.ts\nindex 1234567..89abcde 100644\n--- a/src/checkout/summary.ts\n+++ b/src/checkout/summary.ts\n@@ -10,7 +10,11 @@ export function summarize(cart: Cart): CheckoutSummary {\n   const subtotal = cart.items.reduce((acc, item) => acc + item.price * item.qty, 0);\n   const tax = subtotal * TAX_RATE;\n-  return { subtotal, tax, total: subtotal + tax };\n+  if (cart.items.length === 0) {\n+    return { subtotal: 0, tax: 0, total: 0, empty: true };\n+  }\n+  return { subtotal, tax, total: subtotal + tax, empty: false };\n }\ndiff --git a/src/checkout/summary.test.ts b/src/checkout/summary.test.ts\nindex 2345678..9abcdef 100644\n--- a/src/checkout/summary.test.ts\n+++ b/src/checkout/summary.test.ts\n@@ -20,4 +20,9 @@ describe('summarize', () => {\n     expect(summarize(cart).total).toBe(110);\n   });\n+\n+  it('returns zeros and empty:true for an empty cart', () => {\n+    const cart = { items: [] };\n+    expect(summarize(cart)).toEqual({ subtotal: 0, tax: 0, total: 0, empty: true });\n+  });\n });\n",
+  "files_changed": [
+    { "path": "src/checkout/summary.ts", "added": 4, "removed": 1, "status": "modified" },
+    { "path": "src/checkout/summary.test.ts", "added": 5, "removed": 0, "status": "modified" }
+  ],
+  "linked_issues": [
+    { "id": "118", "source": "github", "url": "https://github.com/odeloic/jonas/issues/118" }
+  ],
+  "ci": {
+    "status": "success",
+    "checks": [
+      { "name": "build", "status": "success", "url": "https://github.com/odeloic/jonas/runs/1" },
+      { "name": "test", "status": "success", "url": "https://github.com/odeloic/jonas/runs/2" }
+    ],
+    "failures": []
+  },
+  "size_metrics": {
+    "lines_added": 9,
+    "lines_removed": 1,
+    "files_count": 2,
+    "size_class": "small"
+  },
+  "depends_on": []
+}

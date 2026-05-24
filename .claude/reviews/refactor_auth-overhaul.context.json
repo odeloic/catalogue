@@ -1,0 +1,166 @@
+{
+  "source": "local",
+  "id": "refactor_auth-overhaul",
+  "url": "",
+  "title": "refactor: collapse auth middleware into a single pipeline",
+  "author": "Sam Chen",
+  "is_draft": false,
+  "base": {
+    "ref": "main",
+    "sha": "aaaa1111"
+  },
+  "head": {
+    "ref": "refactor/auth-overhaul",
+    "sha": "bbbb2222"
+  },
+  "diff": "diff --git a/src/auth/pipeline.ts b/src/auth/pipeline.ts\nnew file mode 100644\n--- /dev/null\n+++ b/src/auth/pipeline.ts\n@@ -0,0 +1,250 @@\n+// new unified auth pipeline\n",
+  "files_changed": [
+    {
+      "path": "src/auth/pipeline.ts",
+      "added": 250,
+      "removed": 0,
+      "status": "modified"
+    },
+    {
+      "path": "src/auth/session.ts",
+      "added": 80,
+      "removed": 200,
+      "status": "modified"
+    },
+    {
+      "path": "src/auth/token.ts",
+      "added": 60,
+      "removed": 140,
+      "status": "modified"
+    },
+    {
+      "path": "src/auth/middleware/legacy.ts",
+      "added": 0,
+      "removed": 180,
+      "status": "modified"
+    },
+    {
+      "path": "src/auth/middleware/jwt.ts",
+      "added": 40,
+      "removed": 90,
+      "status": "modified"
+    },
+    {
+      "path": "src/auth/middleware/session-cookie.ts",
+      "added": 30,
+      "removed": 70,
+      "status": "modified"
+    },
+    {
+      "path": "src/api/users/routes.ts",
+      "added": 25,
+      "removed": 40,
+      "status": "modified"
+    },
+    {
+      "path": "src/api/admin/routes.ts",
+      "added": 30,
+      "removed": 45,
+      "status": "modified"
+    },
+    {
+      "path": "src/api/billing/routes.ts",
+      "added": 20,
+      "removed": 30,
+      "status": "modified"
+    },
+    {
+      "path": "src/api/widgets/routes.ts",
+      "added": 18,
+      "removed": 22,
+      "status": "modified"
+    },
+    {
+      "path": "src/migrations/2026_05_20_drop_legacy_tokens.sql",
+      "added": 12,
+      "removed": 0,
+      "status": "modified"
+    },
+    {
+      "path": "tests/auth/pipeline.test.ts",
+      "added": 200,
+      "removed": 0,
+      "status": "modified"
+    },
+    {
+      "path": "tests/auth/session.test.ts",
+      "added": 50,
+      "removed": 80,
+      "status": "modified"
+    },
+    {
+      "path": "tests/api/users.test.ts",
+      "added": 30,
+      "removed": 50,
+      "status": "modified"
+    },
+    {
+      "path": "tests/api/admin.test.ts",
+      "added": 35,
+      "removed": 60,
+      "status": "modified"
+    },
+    {
+      "path": "tests/api/billing.test.ts",
+      "added": 25,
+      "removed": 40,
+      "status": "modified"
+    },
+    {
+      "path": "docs/auth.md",
+      "added": 80,
+      "removed": 50,
+      "status": "modified"
+    },
+    {
+      "path": "docs/migration-2026.md",
+      "added": 60,
+      "removed": 0,
+      "status": "modified"
+    },
+    {
+      "path": "scripts/audit-tokens.sh",
+      "added": 15,
+      "removed": 0,
+      "status": "modified"
+    },
+    {
+      "path": "config/auth.json",
+      "added": 8,
+      "removed": 5,
+      "status": "modified"
+    },
+    {
+      "path": "package.json",
+      "added": 2,
+      "removed": 1,
+      "status": "modified"
+    }
+  ],
+  "linked_issues": [
+    {
+      "id": "ENG-512",
+      "source": "linear",
+      "url": ""
+    }
+  ],
+  "ci": {
+    "status": "none",
+    "checks": [],
+    "failures": []
+  },
+  "size_metrics": {
+    "lines_added": 1070,
+    "lines_removed": 1103,
+    "files_count": 21,
+    "size_class": "xlarge"
+  },
+  "depends_on": [
+    "ENG-499"
+  ]
+}

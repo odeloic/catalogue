@@ -1,0 +1,36 @@
+{
+  "source": "gitlab",
+  "id": "77",
+  "url": "https://gitlab.com/acme/widgets/-/merge_requests/77",
+  "title": "feat: add widget bulk export endpoint",
+  "author": "lparker",
+  "is_draft": false,
+  "base": { "ref": "main", "sha": "0a1b2c3d" },
+  "head": { "ref": "feat/bulk-export", "sha": "4e5f6a7b" },
+  "diff": "diff --git a/lib/widgets/export.rb b/lib/widgets/export.rb\nnew file mode 100644\n--- /dev/null\n+++ b/lib/widgets/export.rb\n@@ -0,0 +1,80 @@\n+module Widgets\n+  class Export\n+    def initialize(scope)\n+      @scope = scope\n+    end\n+\n+    def to_csv\n+      CSV.generate do |csv|\n+        csv << HEADER\n+        @scope.find_each { |w| csv << row_for(w) }\n+      end\n+    end\n+  end\n+end\n",
+  "files_changed": [
+    { "path": "lib/widgets/export.rb", "added": 80, "removed": 0, "status": "added" },
+    { "path": "app/controllers/widgets_controller.rb", "added": 25, "removed": 2, "status": "modified" },
+    { "path": "config/routes.rb", "added": 3, "removed": 0, "status": "modified" },
+    { "path": "spec/lib/widgets/export_spec.rb", "added": 95, "removed": 0, "status": "added" },
+    { "path": "spec/requests/widgets_export_spec.rb", "added": 45, "removed": 0, "status": "added" }
+  ],
+  "linked_issues": [
+    { "id": "201", "source": "gitlab", "url": "https://gitlab.com/acme/widgets/-/issues/201" }
+  ],
+  "ci": {
+    "status": "success",
+    "checks": [
+      { "name": "rspec", "status": "success", "url": "https://gitlab.com/acme/widgets/-/jobs/1" },
+      { "name": "rubocop", "status": "success", "url": "https://gitlab.com/acme/widgets/-/jobs/2" }
+    ],
+    "failures": []
+  },
+  "size_metrics": {
+    "lines_added": 248,
+    "lines_removed": 2,
+    "files_count": 5,
+    "size_class": "medium"
+  },
+  "depends_on": []
+}
