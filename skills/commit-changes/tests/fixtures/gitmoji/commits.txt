@@ -1,0 +1,39 @@
+:sparkles: add idempotency key support
+---
+:bug: handle expired refresh token race
+---
+:wrench: bump deps
+---
+:sparkles: show empty state on dashboard
+---
+:bug: retry transient db connection errors
+---
+:recycle: extract pagination helper
+---
+:memo: clarify auth flow in readme
+---
+:white_check_mark: cover refresh token expiry edge case
+---
+:zap: cache user lookup in middleware
+---
+:sparkles: add bulk import endpoint
+---
+:bug: correct overflow on long usernames
+---
+:arrow_up: bump typescript to 5.4
+---
+:sparkles: add SSO via Google
+---
+:bug: null deref on missing trace id
+---
+:construction_worker: cache pnpm store across runs
+---
+:rewind: revert bulk import endpoint
+---
+:sparkles: paginate users endpoint
+---
+:bug: correct migration ordering for indexes
+---
+:wrench: tidy lint config
+---
+:sparkles: stream large exports to S3

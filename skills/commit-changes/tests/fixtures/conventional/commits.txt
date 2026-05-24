@@ -1,0 +1,46 @@
+feat(api): add idempotency key support
+
+Requests now accept an Idempotency-Key header. The key is stored
+for 24 hours; duplicate requests return the cached response.
+
+Refs: ENG-412
+---
+fix(auth): handle expired refresh token race
+---
+chore: bump deps
+---
+feat(ui): show empty state on dashboard
+---
+fix(db): retry transient connection errors
+---
+refactor(api): extract pagination helper
+---
+docs: clarify auth flow in readme
+---
+test(auth): cover refresh token expiry edge case
+---
+perf(api): cache user lookup in middleware
+---
+feat(api): add bulk import endpoint
+
+Closes #142
+---
+fix(ui): correct overflow on long usernames
+---
+chore(deps): update typescript to 5.4
+---
+feat(auth): add SSO via Google
+---
+fix(api): null deref on missing trace id
+---
+build: switch to pnpm
+---
+ci: cache pnpm store across runs
+---
+revert: feat(api): add bulk import endpoint
+---
+feat(api): paginate /users endpoint
+---
+fix(db): correct migration ordering for indexes
+---
+chore: tidy lint config
