@@ -1,0 +1,13 @@
+{
+  "name": "catalogue",
+  "owner": {
+    "name": "Loïc Ishimwe"
+  },
+  "plugins": [
+    {
+      "name": "catalogue",
+      "source": "./",
+      "description": "Catalogue of reusable skills and workflows"
+    }
+  ]
+}

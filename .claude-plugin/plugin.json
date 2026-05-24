@@ -1,0 +1,11 @@
+{
+  "name": "catalogue",
+  "description": "Catalogue of reusable skills and workflows",
+  "version": "1.0.0",
+  "author": {
+    "name": "Loïc Ishimwe",
+    "url": "https://github.com/odeloic"
+  },
+  "repository": "https://github.com/odeloic/catalogue",
+  "license": "MIT"
+}
