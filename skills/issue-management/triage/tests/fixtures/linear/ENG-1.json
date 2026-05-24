@@ -1,0 +1,40 @@
+{
+  "source": "linear",
+  "id": "ENG-1",
+  "url": "https://linear.app/acme/issue/ENG-1/improve-onboarding",
+  "title": "Improve onboarding completion rate",
+  "author": "priya",
+  "assignee": "kenji",
+  "status": "In Progress",
+  "labels": ["growth", "onboarding"],
+  "issue_type": "Improvement",
+  "description": "## Motivation\n\nOnboarding drop-off at step 3 is 42%. We want to reduce it to under 25%.\n\n## Definition of done\n\n- Drop-off at step 3 measured below 25% over a 7-day window\n- A/B test results documented in the growth board\n- Rollout plan reviewed with PM\n",
+  "acceptance_criteria": [],
+  "comments": [
+    {
+      "author": "priya",
+      "at": "2026-05-20T14:12:00Z",
+      "body": "Linking the Amplitude funnel below."
+    }
+  ],
+  "comments_total": 1,
+  "related": [
+    {
+      "relation": "parent",
+      "id": "ENG-0",
+      "title": "Q2 growth initiatives",
+      "status": "In Progress",
+      "url": "https://linear.app/acme/issue/ENG-0/q2-growth-initiatives"
+    }
+  ],
+  "prior_attempts": [
+    {
+      "type": "branch",
+      "url": "https://github.com/acme/app/tree/eng-1-onboarding-tweaks",
+      "title": "eng-1-onboarding-tweaks",
+      "state": "open",
+      "author": "kenji"
+    }
+  ],
+  "classification": null
+}
