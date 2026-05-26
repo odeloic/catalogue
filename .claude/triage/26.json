@@ -1,0 +1,18 @@
+{
+  "source": "github",
+  "id": "26",
+  "url": "https://github.com/odeloic/jonas/issues/26",
+  "title": "Architecture: Workflow → Agent — Current State & Migration Path",
+  "author": "odeloic",
+  "assignee": null,
+  "status": "open",
+  "labels": ["architecture"],
+  "issue_type": null,
+  "description": "## Overview\n\nThis issue documents Jonas's current architecture and the recommended migration to an agentic pattern.\n\n## Open questions\n\n- [ ] Which agent framework to use — raw Claude tool use, LangGraph, or something lighter?\n- [ ] Where does conversation history live?\n- [ ] Do scheduled jobs stay as cron, or does an agent decide when to send?\n- [ ] How do we eval agent behavior?\n",
+  "acceptance_criteria": [],
+  "comments": [],
+  "comments_total": 0,
+  "related": [],
+  "prior_attempts": [],
+  "classification": null
+}

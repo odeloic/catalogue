@@ -1,0 +1,34 @@
+{
+  "source": "gitlab",
+  "id": "42",
+  "url": "https://gitlab.com/group/project/-/issues/42",
+  "title": "fix: login fails on Safari when cookies are blocked",
+  "author": "asha",
+  "assignee": "ren",
+  "status": "opened",
+  "labels": ["bug", "auth"],
+  "issue_type": "incident",
+  "description": "## Steps to reproduce\n\n1. Block third-party cookies in Safari\n2. Visit /login\n3. Submit credentials\n\n## Expected\n\nUser is logged in.\n\n## Actual\n\nRedirect loop between /login and /auth/callback.\n\n## Acceptance criteria\n\n- [ ] Login completes without third-party cookies\n- [ ] No redirect loop on Safari 17+\n- [ ] Test added\n",
+  "acceptance_criteria": [],
+  "comments": [],
+  "comments_total": 0,
+  "related": [
+    {
+      "relation": "blocks",
+      "id": "45",
+      "title": "Auth rewrite tracking",
+      "status": "opened",
+      "url": "https://gitlab.com/group/project/-/issues/45"
+    }
+  ],
+  "prior_attempts": [
+    {
+      "type": "mr",
+      "url": "https://gitlab.com/group/project/-/merge_requests/118",
+      "title": "WIP: safari cookie workaround",
+      "state": "closed",
+      "author": "ren"
+    }
+  ],
+  "classification": null
+}

@@ -1,7 +1,7 @@
 ---
 name: review-changes
-description: Review a pull/merge request or local branch diff against its originating issue. Use when the user provides a PR/MR URL, a branch name, or says "review this PR", "look at these changes", "review the diff on branch X". Reuses `triage` for issue context. Produces a structured review with AC verification, quality findings grouped by severity, and a recommendation.
-when_to_use: When the user provides a PR/MR URL (`github.com/.../pull/N`, `gitlab.com/.../-/merge_requests/N`), a branch name, a raw diff, or says "review this PR", "look at these changes", "review the diff on branch X".
+description: Review a pull/merge request or local branch diff against its originating issue's acceptance criteria, run a code-quality pass over the diff, and emit a structured review grouped by severity with a recommendation (`approve` / `request_changes` / `comment`). Reuses `triage` for issue context when the PR references an issue.
+when_to_use: When the user pastes a PR URL (`github.com/.../pull/N`), an MR URL (`gitlab.com/.../-/merge_requests/N`), a branch name to compare against the default branch, or says "review this PR", "review this MR", "code review for X", "look at these changes", "review the diff on branch X", "what do you think of #123", "review the diff", or "audit this PR". SKIP for pure style/lint pointers (use a linter) or when the user wants you to write the code, not review it.
 ---
 
 # review-changes
@@ -81,7 +81,41 @@ Pick the recommendation:
   ```
   { "pr_url": "...", "review_path": "...", "recommendation": "...", "at": "ISO-8601" }
   ```
-- Print a condensed chat summary: recommendation + reasoning, AC tally, top 3 Blockers/Majors, link to the review file.
+- Render a visual HTML artifact (see below) and open it in the browser.
+- Print a one-line chat summary: recommendation + the artifact path.
+
+### 9. Render artifact
+
+Pipe a JSON envelope to the shared renderer:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
+{
+  "kind": "review",
+  "payload": {
+    "pr_title": "feat: add X",
+    "pr_url": "https://github.com/.../pull/N",
+    "issue_ref": "ENG-123",
+    "branch": "feat/x",
+    "files_changed": 14,
+    "recommendation": "approve|request_changes|comment",
+    "summary": "One-paragraph summary of what the PR does.",
+    "acceptance_criteria": [
+      {"criterion": "AC text", "status": "met|partial|missed", "note": "evidence or file:line"}
+    ],
+    "findings": [
+      {"severity": "high|medium|low|info", "title": "Short title",
+       "file": "src/x.ts", "line": 42, "detail": "Problem + why it matters + suggested fix."}
+    ],
+    "open_questions": ["Question for the author"]
+  }
+}
+ARTIFACT_EOF
+```
+
+Map severities: Blocker → `high`, Major → `medium`, Minor → `low`, Nit → `info`. Omit any field that doesn't apply.
+
+**Do not include emojis in any payload text** (titles, summaries, finding details, AC notes, open questions). The renderer styles content with typography and color.
 
 ## Output review markdown structure
 

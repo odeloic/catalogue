@@ -1,7 +1,7 @@
 ---
 name: ship-change
-description: Plan and implement a feature, improvement, or change request given a triage report or issue ID. Use when triage classification is "feature", "improvement", or "change", or the user says "implement X", "ship Y", or "build the thing in ENG-123". Produces a reviewable plan, waits for approval, then executes step-by-step with verification. Depends on `triage-issue` for context, hands off to `commit-changes` per logical commit cluster.
-when_to_use: When a triage report classifies an issue as feature / improvement / change, or the user says "implement X", "ship Y", or "build the thing in ENG-123". Not for bug fixes — those route to `fix-bug`.
+description: Plan-then-implement a feature, improvement, or change request with an explicit approval gate between plan and execution, then step-by-step verification, then handoff to `commit-changes`. Accepts a triage report, an issue ID/URL (will invoke `triage` first), or a free-form change spec.
+when_to_use: When the user says "implement X", "build X", "ship X", "add X", "ship the thing in ENG-123", "let's build feature Y", "make X work like Z", "refactor X to do Y", "improve X", "let's tackle ABC-7", or when a prior `triage` report classifies the issue as `feature`, `improvement`, or `change`. SKIP for bug fixes — route to `fix-bug`. SKIP if classification is `unknown` with low confidence — confirm with the user first. SKIP for one-line tweaks the user clearly wants done immediately without a plan.
 ---
 
 # ship-change
@@ -53,11 +53,12 @@ The goal of Phase 1 is a reviewable artifact at `.claude/plans/<issue-id>.md`. *
    - Steps (ordered, four fields each)
    - Risks and open questions
 
-7. **GATE — present the plan and HALT.**
+7. **GATE — render the plan artifact and HALT.**
 
    This is the critical part. After writing the plan:
 
-   - Surface the plan to the user as a markdown summary in chat.
+   - **Render a visual plan artifact** with `kind: "plan"`, `stage: "plan"` (see schema in "Render artifact" section below) and open it in the browser.
+   - Surface a one-line chat summary with the recommendation to review the artifact and respond.
    - **Stop. Do not write code. Do not proceed to Phase 2 without an explicit affirmative signal.**
    - Acceptable next moves:
      - **Approved** ("looks good", "go ahead", "ship it", "approved") → proceed to Phase 2.
@@ -83,8 +84,9 @@ After all steps complete:
 
 5. **Final acceptance check.** Walk through each success criterion from the plan. Each must be demonstrably met — name how it was verified.
 6. **Write the implementation summary** to `.claude/changes/<issue-id>.md` recording which steps ran, verification results, and any deviations from the plan.
-7. **Hand off to `[[commit-changes]]`.** For large changes, hand off per logical cluster of steps rather than one giant commit. Provide the cluster description and the files in scope.
-8. **Update the triage JSON** at `.claude/triage/<issue-id>.json` with:
+7. **Render the execution artifact** with `kind: "plan"`, `stage: "execution"`, populating each step's `status`. Open it in the browser.
+8. **Hand off to `[[commit-changes]]`.** For large changes, hand off per logical cluster of steps rather than one giant commit. Provide the cluster description and the files in scope.
+9. **Update the triage JSON** at `.claude/triage/<issue-id>.json` with:
    ```json
    "change": {
      "plan_path": ".claude/plans/<issue-id>.md",
@@ -94,6 +96,42 @@ After all steps complete:
    }
    ```
    The `status` transitions: `planned` after Phase 1 approval, `in_progress` during Phase 2, `done` on success, `halted` on bail-out.
+
+## Render artifact
+
+Pipe a JSON envelope to the shared renderer at both gate points (after writing the plan, and after Phase 2 completes):
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
+{
+  "kind": "plan",
+  "payload": {
+    "title": "Short change title",
+    "issue_ref": "ENG-200",
+    "classification": "feature|improvement|change",
+    "stage": "plan|execution",
+    "summary": "Goal in one sentence.",
+    "approach": "High-level approach in 1-3 sentences.",
+    "steps": [
+      {"title": "Step title", "status": "pending|in_progress|done|blocked|skipped",
+       "files": ["src/x.ts"], "description": "What this step does.",
+       "verification": "How to confirm it's done."}
+    ],
+    "verification": {
+      "description": "Final acceptance check.",
+      "steps": ["Check A", "Check B"],
+      "command": "optional command"
+    },
+    "risks": ["Risk 1", "Risk 2"],
+    "callouts": [{"type": "warning|tip", "text": "..."}]
+  }
+}
+ARTIFACT_EOF
+```
+
+`stage: "plan"` produces the gate artifact (all steps `pending`). `stage: "execution"` produces the final report with per-step status filled in.
+
+**Do not include emojis in any payload text** (titles, summaries, approach, step descriptions, verifications, risks, callouts). The renderer styles content with typography and color.
 
 ## Outputs
 

@@ -158,7 +158,12 @@ SCOPE_HINTS_JSON="$(jq -r '
   | unique
 ' "$TRIAGE_FILE" 2>/dev/null || echo "[]")"
 
-mapfile -t SCOPE_HINTS < <(jq -r '.[]' <<<"$SCOPE_HINTS_JSON" 2>/dev/null || true)
+# bash 3.2 compatible — no mapfile
+SCOPE_HINTS=()
+while IFS= read -r _line; do
+  [[ -n "$_line" ]] && SCOPE_HINTS+=("$_line")
+done < <(jq -r '.[]' <<<"$SCOPE_HINTS_JSON" 2>/dev/null || true)
+unset _line
 
 # ---- classify files --------------------------------------------------------
 

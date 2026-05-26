@@ -1,7 +1,7 @@
 ---
 name: explain-codebase
-description: Investigate and explain how something works in the current codebase. Use when the user asks "how does X work here", "where is Y", "explain Z", "trace the flow from A to B", "what happens when [event]", or "show me visually how X works". Default output is a markdown explanation with file:line citations. If the user asks for a visualization (words like "visually", "diagram", "show me", "draw"), produce an HTML artifact with a mermaid diagram appropriate to the question shape. Read-only — never modifies code.
-when_to_use: When the user asks how/where/why a piece of code works in the current repo, asks to trace a flow, or asks for a visual explanation of a code path or lifecycle.
+description: Read-only investigation of the current repo — search, read the densest hits, and answer with `file:line` citations. Renders an HTML artifact (markdown + optional mermaid diagram) for visual explanations.
+when_to_use: When the user asks "how does X work here", "how does X work in this codebase", "where is Y defined", "where does Y live", "explain Z", "what does X do", "trace the flow from A to B", "what happens when [event]", "walk me through X", "how do A and B connect", "show me visually how X works", "draw a diagram of X", or "diagram the lifecycle of X". Trigger words like "visually", "diagram", "show me", "draw", "render" upgrade the artifact to include a mermaid diagram. SKIP when the user wants code changes (route to `fix-bug` or `ship-change`). SKIP for questions about external libraries with no repo-local relevance.
 ---
 
 # explain-codebase
@@ -54,19 +54,49 @@ If `total_hits` is 0, use the `suggestions[]` returned by the script to retry **
 - Comparison: side-by-side structure.
 - End with a **Key files** section listing 3-5 most relevant files.
 
-**Visual (if requested)** — also write `.claude/explanations/<topic-slug>.html`:
-- Pick the diagram type from the question shape — see `references/diagram-types.md`:
-  - *flow / trace* → `sequenceDiagram` or `flowchart`
-  - *lifecycle* → `stateDiagram-v2`
-  - *hierarchy / structure* → `classDiagram` or `flowchart TB`
-  - *data model* → `erDiagram`
-  - *dependency / call graph* → `flowchart LR`
-- Write the mermaid source to a temp `.mmd` file, then run `scripts/render-mermaid.sh <file> --title "..." --explanation "..."` to wrap it in the HTML template.
-- If the diagram type doesn't fit the question, fall back to a flowchart or a markdown table; don't force-fit.
+**Visual** is handled by the shared renderer (see step 5). Pick the diagram type from the question shape — see `references/diagram-types.md`:
+- *flow / trace* → `sequenceDiagram` or `flowchart`
+- *lifecycle* → `stateDiagram-v2`
+- *hierarchy / structure* → `classDiagram` or `flowchart TB`
+- *data model* → `erDiagram`
+- *dependency / call graph* → `flowchart LR`
 
-## 5. Surface
+If the diagram type doesn't fit the question, omit the `mermaid` field; don't force-fit.
 
-Print a condensed summary in chat with the key `file:line` citations inline and the paths to the markdown / HTML artifacts.
+## 5. Render artifact
+
+Always produce a visual HTML artifact for the user — markdown alone reads poorly for explanations. Pipe a JSON envelope to the shared renderer:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
+{
+  "kind": "explain",
+  "payload": {
+    "title": "Short title of the explanation",
+    "question": "The user's original question (verbatim or paraphrased)",
+    "summary": "Direct one-paragraph answer.",
+    "sections": [
+      {"heading": "Section heading",
+       "markdown": "Explanation. Use \`code\` for symbol names. Multiple paragraphs OK.",
+       "citations": [{"file": "src/x.ts", "line": 42, "note": "what this line does"}],
+       "code": "optional code snippet illustrating the point",
+       "lang": "ts"}
+    ],
+    "mermaid": "graph LR; A --> B; B --> C",
+    "files_touched": ["src/x.ts", "src/y.ts"],
+    "callouts": [{"type": "info|warning|tip", "text": "..."}]
+  }
+}
+ARTIFACT_EOF
+```
+
+Include `mermaid` only when the question shape benefits from a diagram (flow, lifecycle, hierarchy, dependency). Pick the diagram type per `references/diagram-types.md`.
+
+**Do not include emojis in any payload text** (title, summary, sections, citations, callouts). The renderer styles content with typography and color.
+
+## 6. Surface
+
+After the artifact opens, print a one-line chat summary: the direct answer plus key `file:line` citations.
 
 ## Edge cases
 

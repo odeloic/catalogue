@@ -1,7 +1,7 @@
 ---
 name: triage
-description: Triage an issue from Linear, GitHub, or GitLab and produce a normalized triage report with classification, context, related issues, and prior implementation attempts. Use when the user provides an issue URL, an issue ID (e.g. ENG-123, #42), or asks "what is this issue about", "look at this ticket", or "help me understand this issue".
-when_to_use: When the user provides an issue URL, an issue ID (e.g. ENG-123, #42), or asks "what is this issue about", "look at this ticket", or "help me understand this issue".
+description: Fetch an issue from Linear, GitHub, or GitLab and produce a normalized JSON triage report with classification (bug / feature / improvement / change), context, related issues, and prior implementation attempts. Strictly read-only — never comments, assigns, or changes status. Downstream skills `fix-bug`, `ship-change`, and `review-changes` read its output from `.claude/triage/<id>.json`.
+when_to_use: When the user pastes an issue URL (linear.app/..., github.com/.../issues/N, gitlab.com/.../-/issues/N), mentions a bare issue ID (e.g. ENG-123, ABC-7, #42), asks "what is this issue about", "look at this ticket", "triage X", "help me understand this issue", "classify this issue", or "what kind of issue is this". Also fires when the user asks to start work on an issue and the current branch encodes one (e.g. `eng-123-fix-thing`). SKIP when the user already has a triage report path in hand and just wants to act on it.
 ---
 
 # triage
@@ -54,13 +54,35 @@ Comment truncation: if `>100` comments, keep first 5 + last 10, set `comments_to
 
 ## Final report to the user
 
-After writing the JSON, print a markdown summary in chat:
-- One-line classification (`bug (rule: label match, confidence: high)`).
-- Two-sentence summary of what the issue is about.
-- Acceptance criteria as a checkbox list.
-- Related items as a small table (relation | id | title | status).
-- Prior attempts with state (open / merged / closed / draft).
-- "Open questions for the author" section if description is empty, AC is missing, or repro steps are absent on a bug.
+After writing the triage JSON, render a visual HTML artifact and open it in the user's browser. Pipe a JSON envelope to the shared renderer via heredoc:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
+{
+  "kind": "triage",
+  "payload": {
+    "id": "ENG-123",
+    "title": "Issue title",
+    "classification": "bug|feature|improvement|change|unknown",
+    "confidence": "high|medium|low",
+    "source": "Linear|GitHub|GitLab",
+    "source_url": "https://...",
+    "summary": "Two-sentence summary of what the issue is about.",
+    "context": ["Concrete context bullet 1", "Bullet 2"],
+    "acceptance_criteria": ["AC 1", "AC 2"],
+    "related": [{"id": "ENG-100", "title": "...", "url": "..."}],
+    "prior_attempts": [{"ref": "PR #42", "outcome": "closed", "notes": "..."}],
+    "callouts": [{"type": "warning|danger|tip|info", "text": "..."}]
+  }
+}
+ARTIFACT_EOF
+```
+
+Use `callouts` for: closed/duplicate issue warnings, missing AC, repro steps absent on a bug. Omit any field that doesn't apply.
+
+**Do not include emojis in any payload text** (titles, summaries, descriptions, callouts, AC, notes). The renderer styles content with typography and color — emojis break the visual language.
+
+After the artifact opens, print a one-line chat summary: classification + the artifact path.
 
 ## Edge cases
 - Closed or duplicate: surface prominently at the top of the summary — downstream skills may bail.

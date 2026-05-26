@@ -99,8 +99,13 @@ if [[ -z "$RG_OUT" ]]; then
       SUGGESTIONS+=("$sc")
     fi
   done
-  # Dedupe + cap at 3.
-  mapfile -t SUGGESTIONS < <(printf '%s\n' "${SUGGESTIONS[@]}" | awk '!seen[$0]++' | head -n 3)
+  # Dedupe + cap at 3. (bash 3.2 compatible — no mapfile)
+  _dedup_input="$(printf '%s\n' "${SUGGESTIONS[@]}" | awk '!seen[$0]++' | head -n 3)"
+  SUGGESTIONS=()
+  while IFS= read -r _s; do
+    [[ -n "$_s" ]] && SUGGESTIONS+=("$_s")
+  done <<<"$_dedup_input"
+  unset _dedup_input _s
 
   jq -n \
     --argjson keywords "$(printf '%s\n' "${KEYWORDS[@]}" | jq -R . | jq -s .)" \

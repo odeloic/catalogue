@@ -1,7 +1,7 @@
 ---
 name: create-issue
-description: Draft and optionally file an issue to Linear, GitHub, or GitLab. Use when the user says "create an issue for X", "file a bug about Y", "make a ticket", or "open an issue". Detects the target tracker from repo remote or user-provided context, classifies the issue type, gathers missing required info conversationally, applies the right template, and produces a draft for review. Files the issue only after explicit user approval.
-when_to_use: When the user asks to create, file, open, or draft an issue, ticket, or bug report for Linear, GitHub, or GitLab.
+description: Draft a well-formed issue for Linear, GitHub, or GitLab — auto-detecting the tracker from the repo remote, classifying the type (bug / feature / improvement / change), gathering missing required fields conversationally one question at a time, checking for duplicates, applying the right template, and surfacing a draft for review. Files only after explicit user approval.
+when_to_use: When the user says "create an issue for X", "file a bug about Y", "open an issue", "make a ticket", "draft a Linear issue for X", "log this as a bug", "track this as a feature request", "raise a ticket for X", "write up an issue for Z", or mentions a team prefix (e.g. "for ENG team"). SKIP when the user wants to act on an existing issue (use `triage`), or when they want a code change without a tracking issue.
 ---
 
 # create-issue

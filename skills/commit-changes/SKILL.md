@@ -1,7 +1,7 @@
 ---
 name: commit-changes
-description: Stage and commit changes in the current working tree. Use at the end of an implementation task, or when the user says "commit", "commit these changes", "make a commit", or "commit and push". Detects the repo's commit convention from history, decides whether to make one commit or split into logical groups, and writes messages under 100 characters. Reads optional context from `fix-bug` or `ship-change` reports if present.
-when_to_use: At the end of an implementation task, or when the user says "commit", "commit these changes", "make a commit", or "commit and push".
+description: Stage and commit changes in the current working tree using the repo's existing commit convention. Auto-detects prefix style (conventional commits, plain, ticket-prefixed, etc.) from the last 50 commits, decides whether to make one commit or split into logical groups, and writes terse subject-only messages (no body unless genuinely warranted). Reads optional context from `.claude/fixes/*.md` (from `fix-bug`) or `.claude/changes/*.md` (from `ship-change`) if present.
+when_to_use: When the user says "commit", "commit this", "commit these changes", "make a commit", "commit and push", "stage and commit", "wrap up with a commit", or asks to finalize work after edits. Also use proactively at the natural end of an implementation task once the user signals completion (e.g. "looks good", "ship it", "we're done"). SKIP if the working tree is clean, or if the user explicitly says "don't commit" / "just stage" / "leave it uncommitted".
 ---
 
 # commit-changes
@@ -29,13 +29,33 @@ Stage and commit the working tree using the repo's existing convention. Never in
 
 4. **Group (only when splitting).** Cluster files by concern: tests with their source, generated files alone, docs alone if substantial, migrations with the code that uses them. If 3+ clusters, present them to the user before staging.
 
-5. **Write messages.** Per cluster:
-   - Subject: max 100 chars, matches detected convention exactly (prefix, scope syntax, case, punctuation).
-   - Body: only when motivation is non-obvious or there's a breaking implication. Wrap at 72.
+5. **Write messages.** Per cluster. **Keep it terse.** A single subject line is the goal; bodies are the exception, not the default.
+   - **Subject only** in the overwhelming majority of cases. Aim for ~50 chars, hard cap 72. Matches detected convention exactly (prefix, scope syntax, case, punctuation).
+   - **No body** unless one of these is true: motivation is non-obvious from the diff, there is a breaking change, or there is a non-trivial reason a future reader needs. "User asked, change is straightforward" is **not** a reason for a body. If you write one: blank line after subject, wrap at 72, describe **why**, not **what** (the diff is the what). Two or three sentences max — no bullet lists, no recap of files touched.
+   - **No filler.** Skip phrases like "this commit", "this change", "in order to", "as requested". Drop the period.
+   - **Imperative mood.** "add x", not "added x" / "adds x".
    - Issue refs: follow the detected pattern + location.
    - `Signed-off-by` / `Co-authored-by`: include if the repo uses them.
 
-   See `references/message-writing.md` and `references/conventional-commits.md`.
+   Good examples (match the detected style — these assume conventional + lowercase):
+   ```
+   fix(auth): handle expired refresh token race
+   feat(api): add idempotency key support
+   chore(deps): bump typescript to 5.4
+   ```
+
+   Bad example — too verbose, recaps the diff, adds filler:
+   ```
+   feat(api): add new idempotency key support to the API endpoints
+
+   This commit adds support for idempotency keys to our API. It modifies
+   the request handler in src/api/handler.ts to check for the
+   Idempotency-Key header, adds a new cache module in src/api/cache.ts
+   to store responses, and updates the tests in tests/api.test.ts to
+   cover the new behavior. This was requested by the user.
+   ```
+
+   See `references/message-writing.md` and `references/conventional-commits.md` for edge cases.
 
 6. **Stage and commit.** Use explicit paths (`git add <files>`), not `git add -A`. Commit each cluster. If a pre-commit hook modifies files, re-add and retry once; if it modifies again or fails outright, halt and surface the hook output. Never `--no-verify`.
 

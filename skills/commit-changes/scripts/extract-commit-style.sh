@@ -187,7 +187,9 @@ ticket_count=0
 scope_count=0
 declare -a scopes=()
 declare -a prefix_examples=()
-declare -A prefix_seen=()
+# bash 3.2 has no associative arrays. Track seen prefixes as a delimited
+# string: every recorded key is surrounded by NUL-safe sentinels "|key|".
+prefix_seen_blob="|"
 
 upper=0; lower=0; sentence=0
 total_len=0
@@ -196,7 +198,11 @@ max_len=0
 
 body_count=0
 
-declare -A issue_locs=()
+# bash 3.2: track per-location issue-ref counts as plain integers. The set
+# of locations is fixed (subject/body/trailer).
+issue_loc_subject=0
+issue_loc_body=0
+issue_loc_trailer=0
 issue_patterns=()
 
 for i in "${!SUBJECTS[@]}"; do
@@ -211,8 +217,8 @@ for i in "${!SUBJECTS[@]}"; do
   if [[ "$s" =~ $CONV_RE ]]; then
     conv_count=$((conv_count+1))
     pfx="${BASH_REMATCH[1]}:"
-    if [[ -z "${prefix_seen[$pfx]:-}" ]]; then
-      prefix_seen[$pfx]=1
+    if [[ "$prefix_seen_blob" != *"|$pfx|"* ]]; then
+      prefix_seen_blob="${prefix_seen_blob}${pfx}|"
       prefix_examples+=("$pfx")
     fi
     if [[ -n "${BASH_REMATCH[2]:-}" ]]; then
@@ -224,15 +230,15 @@ for i in "${!SUBJECTS[@]}"; do
   elif [[ "$s" =~ $GITMOJI_RE ]]; then
     gitmoji_count=$((gitmoji_count+1))
     pfx="$(printf '%s' "$s" | awk '{print $1}')"
-    if [[ -z "${prefix_seen[$pfx]:-}" ]]; then
-      prefix_seen[$pfx]=1
+    if [[ "$prefix_seen_blob" != *"|$pfx|"* ]]; then
+      prefix_seen_blob="${prefix_seen_blob}${pfx}|"
       prefix_examples+=("$pfx")
     fi
   elif [[ "$s" =~ $TICKET_RE ]]; then
     ticket_count=$((ticket_count+1))
     pfx="$(printf '%s' "$s" | grep -oE '^\[?[A-Z][A-Z0-9]+-[0-9]+\]?' || true)"
-    if [[ -n "$pfx" && -z "${prefix_seen[$pfx]:-}" ]]; then
-      prefix_seen[$pfx]=1
+    if [[ -n "$pfx" && "$prefix_seen_blob" != *"|$pfx|"* ]]; then
+      prefix_seen_blob="${prefix_seen_blob}${pfx}|"
       prefix_examples+=("$pfx")
     fi
   fi
@@ -306,7 +312,11 @@ for i in "${!SUBJECTS[@]}"; do
           fi
         done <<<"$b"
       fi
-      issue_locs[$loc]=$((${issue_locs[$loc]:-0} + 1))
+      case "$loc" in
+        subject) issue_loc_subject=$((issue_loc_subject + 1)) ;;
+        body)    issue_loc_body=$((issue_loc_body + 1)) ;;
+        trailer) issue_loc_trailer=$((issue_loc_trailer + 1)) ;;
+      esac
       break
     fi
   done
@@ -384,10 +394,14 @@ issue_pattern="null"
 issue_location="none"
 if (( ${#issue_patterns[@]} > 0 )); then
   issue_pattern="$(printf '%s\n' "${issue_patterns[@]}" | sort | uniq -c | sort -rn | head -1 | awk '{$1=""; sub(/^ /,""); print}')"
-  # Pick most common location.
+  # Pick most common location (bash 3.2: iterate fixed key set).
   best_loc_count=0
-  for loc in "${!issue_locs[@]}"; do
-    c="${issue_locs[$loc]}"
+  for loc in subject body trailer; do
+    case "$loc" in
+      subject) c=$issue_loc_subject ;;
+      body)    c=$issue_loc_body ;;
+      trailer) c=$issue_loc_trailer ;;
+    esac
     if (( c > best_loc_count )); then
       best_loc_count=$c
       issue_location="$loc"

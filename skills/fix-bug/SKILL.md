@@ -1,7 +1,7 @@
 ---
 name: fix-bug
-description: Fix a bug end-to-end given a triage report or issue ID. Use when a triage classification is "bug", or the user says "fix this bug", "reproduce and fix", or "the bug in ENG-123". Enforces reproduce, failing test, fix, atomicity verification. Depends on `triage` for context, hands off to `commit-changes` when done.
-when_to_use: When a triage classification is "bug", or the user says "fix this bug", "reproduce and fix", or "the bug in ENG-123".
+description: Drive a bug fix end-to-end with the discipline of reproduce → failing test (when test infra exists) → minimal fix → atomicity check → handoff to `commit-changes`. Accepts a triage report path, an issue ID/URL (will invoke `triage` first), or a free-form bug description.
+when_to_use: When the user says "fix this bug", "fix the bug in ENG-123 / #42", "reproduce and fix X", "debug and fix Y", "X is broken — fix it", "this is crashing — patch it", "investigate and fix Z", or when a prior `triage` report classifies the issue as `bug`. Also fires on phrases like "why does X fail" combined with an ask to repair. SKIP for feature work, refactors, or behavior changes — route those to `ship-change`. SKIP for pure investigation with no fix expected — route to `explain-codebase`.
 ---
 
 # fix-bug
@@ -87,14 +87,57 @@ Write the fix metadata back into `.claude/triage/<id>.json` so `review-changes` 
 }
 ```
 
-### 9. Handoff
-Hand off to `commit-changes` (skill to be added). If the user's convention separates test commits from fix commits, stage them as separate logical groups.
+### 9. Render artifact
+
+Pipe a JSON envelope to the shared renderer to open a visual fix report:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
+{
+  "kind": "bugfix",
+  "payload": {
+    "title": "Short bug title",
+    "issue_ref": "ENG-123",
+    "status": "fixed|in_progress|blocked",
+    "reproduction": {
+      "description": "What goes wrong.",
+      "steps": ["Step 1", "Step 2"],
+      "command": "optional repro command"
+    },
+    "test": {
+      "description": "Why this test pins the bug.",
+      "file": "tests/x.spec.ts",
+      "code": "the test source",
+      "lang": "ts"
+    },
+    "fix": {
+      "summary": "What the fix does and why.",
+      "changes": [
+        {"file": "src/x.ts", "lang": "ts",
+         "diff": [{"type": "context|add|remove", "text": "line content"}]}
+      ]
+    },
+    "atomicity": {
+      "description": "Scope of the change.",
+      "checks": ["No unrelated edits", "Single concern"]
+    },
+    "callouts": [{"type": "warning|tip", "text": "Anything the user should know"}]
+  }
+}
+ARTIFACT_EOF
+```
+
+**Do not include emojis in any payload text** (titles, summaries, descriptions, callouts, atomicity checks). The renderer styles content with typography and color.
+
+### 10. Handoff
+Hand off to `commit-changes`. If the user's convention separates test commits from fix commits, stage them as separate logical groups.
 
 ## Outputs
 
 1. `.claude/fixes/<id>.md` — repro recipe, test added (file + name), fix description, verification results, atomicity check summary.
-2. The actual code changes (test + fix) in the working tree, ready for `commit-changes`.
-3. Updated triage JSON with the `fix` field linked.
+2. Visual HTML artifact opened in the user's browser.
+3. The actual code changes (test + fix) in the working tree, ready for `commit-changes`.
+4. Updated triage JSON with the `fix` field linked.
 
 ## Edge cases
 
