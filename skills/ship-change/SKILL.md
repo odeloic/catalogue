@@ -57,7 +57,7 @@ The goal of Phase 1 is a reviewable artifact at `.claude/plans/<issue-id>.md`. *
 
    This is the critical part. After writing the plan:
 
-   - **Render a visual plan artifact** with `kind: "plan"`, `stage: "plan"` (see schema in "Render artifact" section below) and open it in the browser.
+   - **Render a visual plan artifact** with `kind: "plan"`, `stage: "plan"` (see schema in "Render artifact" section below); the renderer opens it in the browser automatically.
    - Surface a one-line chat summary with the recommendation to review the artifact and respond.
    - **Stop. Do not write code. Do not proceed to Phase 2 without an explicit affirmative signal.**
    - Acceptable next moves:

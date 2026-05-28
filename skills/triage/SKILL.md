@@ -54,7 +54,7 @@ Comment truncation: if `>100` comments, keep first 5 + last 10, set `comments_to
 
 ## Final report to the user
 
-After writing the triage JSON, render a visual HTML artifact and open it in the user's browser. Pipe a JSON envelope to the shared renderer via heredoc:
+After writing the triage JSON, render a visual HTML artifact. The renderer opens it in the user's browser automatically. Pipe a JSON envelope to the shared renderer via heredoc:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'

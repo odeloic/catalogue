@@ -81,7 +81,7 @@ Pick the recommendation:
   ```
   { "pr_url": "...", "review_path": "...", "recommendation": "...", "at": "ISO-8601" }
   ```
-- Render a visual HTML artifact (see below) and open it in the browser.
+- Render a visual HTML artifact (see below); the renderer opens it in the browser automatically.
 - Print a one-line chat summary: recommendation + the artifact path.
 
 ### 9. Render artifact
