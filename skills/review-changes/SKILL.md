@@ -81,7 +81,7 @@ Pick the recommendation:
   ```
   { "pr_url": "...", "review_path": "...", "recommendation": "...", "at": "ISO-8601" }
   ```
-- Render a visual HTML artifact (see below); the renderer opens it in the browser automatically.
+- Pipe to the shared renderer (see below). The renderer writes the HTML and opens it in the browser itself — do NOT run `open`, `xdg-open`, `webbrowser`, or any other browser command afterwards, or the artifact will open twice.
 - Print a one-line chat summary: recommendation + the artifact path.
 
 ### 9. Render artifact

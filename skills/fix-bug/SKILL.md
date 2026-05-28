@@ -89,7 +89,7 @@ Write the fix metadata back into `.claude/triage/<id>.json` so `review-changes` 
 
 ### 9. Render artifact
 
-Pipe a JSON envelope to the shared renderer to open a visual fix report:
+Pipe a JSON envelope to the shared renderer to produce a visual fix report. The renderer writes the HTML and opens it in the browser itself — do NOT run `open`, `xdg-open`, `webbrowser`, or any other browser command afterwards, or the artifact will open twice.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
