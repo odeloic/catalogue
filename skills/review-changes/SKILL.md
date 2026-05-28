@@ -51,6 +51,8 @@ correctness, error handling, security, performance, tests, style consistency, sc
 
 Each finding records: `file:line`, what's wrong, why it matters, and a concrete suggestion.
 
+**Scope guard.** A finding's `file` MUST appear in `files_changed[]` from Phase 1. Code you opened for context (callers, callees, surrounding helpers, files imported by the diff) is not in scope for findings — it is only there to help you judge the diff. If something in out-of-diff code looks worth mentioning, drop it: it belongs in a separate conversation with the author, not in this PR review. The only exception is when a diff line directly relies on out-of-diff behaviour that is broken — in that case the finding's `file:line` is the diff line that depends on it, not the out-of-diff code.
+
 ### 5. AC verification
 For each acceptance criterion pulled from triage, classify as:
 - **Met** — diff clearly satisfies it.
@@ -76,6 +78,9 @@ Pick the recommendation:
 - No Blockers/Majors, all AC Met or Not-verifiable-from-diff with a note → `approve`.
 
 ### 8. Write outputs
+
+**Pre-write scope check (mandatory).** Before writing the review markdown, walk every finding produced in Phase 4 and verify its `file` appears in `files_changed[]` from Phase 1. Drop any finding whose file is not in that list — do not relocate it, do not soften it, just drop it. If `files_changed[]` is empty (raw-diff input with no PR context), parse the unified diff for `+++ b/<path>` lines and use that set instead. Only after this check passes do the outputs below get written.
+
 - Write `.claude/reviews/<pr-id>.md` (full review).
 - For each linked issue, append a record to `.claude/triage/<issue-id>.json` under `reviews[]`:
   ```
