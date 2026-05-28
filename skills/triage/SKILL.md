@@ -54,7 +54,7 @@ Comment truncation: if `>100` comments, keep first 5 + last 10, set `comments_to
 
 ## Final report to the user
 
-After writing the triage JSON, render a visual HTML artifact and open it in the user's browser. Pipe a JSON envelope to the shared renderer via heredoc:
+After writing the triage JSON, render a visual HTML artifact by piping a JSON envelope to the shared renderer via heredoc. The renderer writes the HTML and opens it in the browser itself — do NOT run `open`, `xdg-open`, `webbrowser`, or any other browser command afterwards, or the artifact will open twice.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
@@ -82,7 +82,7 @@ Use `callouts` for: closed/duplicate issue warnings, missing AC, repro steps abs
 
 **Do not include emojis in any payload text** (titles, summaries, descriptions, callouts, AC, notes). The renderer styles content with typography and color — emojis break the visual language.
 
-After the artifact opens, print a one-line chat summary: classification + the artifact path.
+After the renderer exits (it opens the artifact itself), print a one-line chat summary: classification + the artifact path.
 
 ## Edge cases
 - Closed or duplicate: surface prominently at the top of the summary — downstream skills may bail.

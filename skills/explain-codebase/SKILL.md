@@ -65,7 +65,7 @@ If the diagram type doesn't fit the question, omit the `mermaid` field; don't fo
 
 ## 5. Render artifact
 
-Always produce a visual HTML artifact for the user — markdown alone reads poorly for explanations. Pipe a JSON envelope to the shared renderer:
+Always produce a visual HTML artifact for the user — markdown alone reads poorly for explanations. Pipe a JSON envelope to the shared renderer. The renderer writes the HTML and opens it in the browser itself — do NOT run `open`, `xdg-open`, `webbrowser`, or any other browser command afterwards, or the artifact will open twice.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
@@ -96,7 +96,7 @@ Include `mermaid` only when the question shape benefits from a diagram (flow, li
 
 ## 6. Surface
 
-After the artifact opens, print a one-line chat summary: the direct answer plus key `file:line` citations.
+After the renderer exits (it opens the artifact itself), print a one-line chat summary: the direct answer plus key `file:line` citations.
 
 ## Edge cases
 
