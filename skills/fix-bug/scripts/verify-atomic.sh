@@ -313,13 +313,19 @@ FILES_COUNT=${#FILES_TOUCHED[@]}
 
 array_to_json() {
   local name="$1"
+  # Read the length WITHOUT expanding the array first. On bash 3.2 (macOS
+  # /bin/bash) under `set -u`, expanding an empty array — even indirectly via
+  # "${!count_var}" — aborts with "unbound variable". `${#arr[@]}` is exempt,
+  # so we gate the expansion on a non-zero length.
+  local len
+  eval "len=\${#${name}[@]}"
+  if (( len == 0 )); then
+    echo "[]"
+    return
+  fi
   local count_var="${name}[@]"
   local items=("${!count_var}")
-  if [[ ${#items[@]} -eq 0 ]]; then
-    echo "[]"
-  else
-    printf '%s\n' "${items[@]}" | jq -R . | jq -s .
-  fi
+  printf '%s\n' "${items[@]}" | jq -R . | jq -s .
 }
 
 FILES_JSON="$(array_to_json FILES_TOUCHED)"

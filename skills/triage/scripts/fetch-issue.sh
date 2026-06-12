@@ -30,6 +30,31 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1 || { err "missing required command: $1"; exit 1; }
 }
 
+# run <label> <cmd...>
+# Runs a command, capturing its stderr. On success echoes stdout. On failure,
+# prints <label> plus the tool's own stderr (auth error, 404, rate-limit,
+# network) and exits 1, so the agent gets a concrete reason instead of a bare
+# "command failed" — and can pick an alternative (e.g. retry with -R, switch
+# to the MCP path, or report the auth gap).
+run() {
+  local label="$1"; shift
+  local errfile out rc
+  errfile="$(mktemp "${TMPDIR:-/tmp}/fetch-issue.XXXXXX")"
+  if out="$("$@" 2>"$errfile")"; then
+    rm -f "$errfile"
+    printf '%s\n' "$out"
+    return 0
+  else
+    rc=$?
+  fi
+  err "$label (exit $rc)"
+  if [[ -s "$errfile" ]]; then
+    while IFS= read -r _line; do err "  | $_line"; done <"$errfile"
+  fi
+  rm -f "$errfile"
+  exit 1
+}
+
 require_cmd jq
 
 # ---- input parsing ---------------------------------------------------------
@@ -176,13 +201,11 @@ fetch_github() {
   local -a gh_args=()
   if [[ -n "${REPO:-}" ]]; then gh_args=(-R "$REPO"); fi
 
-  issue="$(gh issue view "$ID" "${gh_args[@]}" --json number,title,author,assignees,state,labels,body,url,createdAt,updatedAt,closedAt)" || {
-    err "gh issue view failed for $ID"; exit 1;
-  }
-  comments_raw="$(gh issue view "$ID" "${gh_args[@]}" --json comments)" || {
-    err "gh issue view --json comments failed for $ID"; exit 1;
-  }
-  prs="$(gh pr list "${gh_args[@]}" --search "$ID in:title,body" --state all --json number,title,url,state,author,isDraft --limit 20 2>/dev/null || echo '[]')"
+  issue="$(run "gh issue view failed for issue $ID" \
+    gh issue view "$ID" ${gh_args[@]+"${gh_args[@]}"} --json number,title,author,assignees,state,labels,body,url,createdAt,updatedAt,closedAt)"
+  comments_raw="$(run "gh issue view --json comments failed for issue $ID" \
+    gh issue view "$ID" ${gh_args[@]+"${gh_args[@]}"} --json comments)"
+  prs="$(gh pr list ${gh_args[@]+"${gh_args[@]}"} --search "$ID in:title,body" --state all --json number,title,url,state,author,isDraft --limit 20 2>/dev/null || echo '[]')"
 
   comments_total="$(jq '.comments | length' <<<"$comments_raw")"
   if [[ "$comments_total" -gt 100 ]]; then
@@ -235,10 +258,9 @@ fetch_gitlab() {
   local -a glab_args=()
   if [[ -n "${REPO:-}" ]]; then glab_args=(-R "$REPO"); fi
 
-  issue="$(glab issue view "$ID" "${glab_args[@]}" -F json)" || {
-    err "glab issue view failed for $ID"; exit 1;
-  }
-  mrs="$(glab mr list "${glab_args[@]}" --search "$ID" -F json 2>/dev/null || echo '[]')"
+  issue="$(run "glab issue view failed for issue $ID" \
+    glab issue view "$ID" ${glab_args[@]+"${glab_args[@]}"} -F json)"
+  mrs="$(glab mr list ${glab_args[@]+"${glab_args[@]}"} --search "$ID" -F json 2>/dev/null || echo '[]')"
 
   comments_total="$(jq '(.discussions // .notes // []) | length' <<<"$issue" 2>/dev/null || echo 0)"
 
@@ -274,8 +296,13 @@ fetch_gitlab() {
 
 # ---- dispatch --------------------------------------------------------------
 
+# Capture the result in its own step. Folding the fetch into
+# `write_out "$(fetch_github)"` would discard the function's exit status — a
+# failed fetch would still write an empty document and exit 0, leaving the
+# agent with silent garbage. Assign first so `set -e` propagates the failure.
 case "$SOURCE" in
-  github) write_out "$(fetch_github)" ;;
-  gitlab) write_out "$(fetch_gitlab)" ;;
+  github) RESULT="$(fetch_github)" ;;
+  gitlab) RESULT="$(fetch_gitlab)" ;;
   *) err "unsupported source: $SOURCE"; exit 1 ;;
 esac
+write_out "$RESULT"

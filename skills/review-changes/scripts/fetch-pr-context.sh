@@ -31,6 +31,31 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1 || { err "missing required command: $1"; exit 1; }
 }
 
+# run <label> <cmd...>
+# Runs a command, capturing its stderr. On success echoes stdout. On failure,
+# prints <label> plus the tool's own stderr (auth error, 404, rate-limit,
+# network) and exits 1, so the agent gets a concrete reason instead of a bare
+# "command failed" — and can pick an alternative (e.g. retry with -R, switch
+# to the MCP path, or report the auth gap).
+run() {
+  local label="$1"; shift
+  local errfile out rc
+  errfile="$(mktemp "${TMPDIR:-/tmp}/fetch-pr.XXXXXX")"
+  if out="$("$@" 2>"$errfile")"; then
+    rm -f "$errfile"
+    printf '%s\n' "$out"
+    return 0
+  else
+    rc=$?
+  fi
+  err "$label (exit $rc)"
+  if [[ -s "$errfile" ]]; then
+    while IFS= read -r _line; do err "  | $_line"; done <"$errfile"
+  fi
+  rm -f "$errfile"
+  exit 1
+}
+
 require_cmd jq
 
 INPUT="${1:-}"
@@ -173,12 +198,11 @@ fetch_github() {
   if [[ -n "${REPO:-}" ]]; then gh_args=(-R "$REPO"); fi
 
   local pr diff checks linked
-  pr="$(gh pr view "$ID" "${gh_args[@]}" --json number,title,url,author,isDraft,state,baseRefName,baseRefOid,headRefName,headRefOid,files,additions,deletions,body)" || {
-    err "gh pr view failed for $ID"; exit 1;
-  }
-  diff="$(gh pr diff "$ID" "${gh_args[@]}" 2>/dev/null || echo "")"
-  checks="$(gh pr checks "$ID" "${gh_args[@]}" --json name,state,link 2>/dev/null || echo '[]')"
-  linked="$(gh pr view "$ID" "${gh_args[@]}" --json closingIssuesReferences 2>/dev/null || echo '{"closingIssuesReferences":[]}')"
+  pr="$(run "gh pr view failed for PR $ID" \
+    gh pr view "$ID" ${gh_args[@]+"${gh_args[@]}"} --json number,title,url,author,isDraft,state,baseRefName,baseRefOid,headRefName,headRefOid,files,additions,deletions,body)"
+  diff="$(gh pr diff "$ID" ${gh_args[@]+"${gh_args[@]}"} 2>/dev/null || echo "")"
+  checks="$(gh pr checks "$ID" ${gh_args[@]+"${gh_args[@]}"} --json name,state,link 2>/dev/null || echo '[]')"
+  linked="$(gh pr view "$ID" ${gh_args[@]+"${gh_args[@]}"} --json closingIssuesReferences 2>/dev/null || echo '{"closingIssuesReferences":[]}')"
 
   local added removed files_count size_class
   added="$(jq -r '.additions // 0' <<<"$pr")"
@@ -259,11 +283,10 @@ fetch_gitlab() {
   if [[ -n "${REPO:-}" ]]; then glab_args=(-R "$REPO"); fi
 
   local mr diff ci_raw
-  mr="$(glab mr view "$ID" "${glab_args[@]}" -F json)" || {
-    err "glab mr view failed for $ID"; exit 1;
-  }
-  diff="$(glab mr diff "$ID" "${glab_args[@]}" 2>/dev/null || echo "")"
-  ci_raw="$(glab ci status --mr "$ID" "${glab_args[@]}" -F json 2>/dev/null || echo '[]')"
+  mr="$(run "glab mr view failed for MR $ID" \
+    glab mr view "$ID" ${glab_args[@]+"${glab_args[@]}"} -F json)"
+  diff="$(glab mr diff "$ID" ${glab_args[@]+"${glab_args[@]}"} 2>/dev/null || echo "")"
+  ci_raw="$(glab ci status --mr "$ID" ${glab_args[@]+"${glab_args[@]}"} -F json 2>/dev/null || echo '[]')"
 
   local added removed files_count size_class
   added="$(jq -r '([.changes[]?.diff // ""] | join("\n") | [splits("\n") | select(startswith("+") and (startswith("+++") | not))] | length)' <<<"$mr" 2>/dev/null || echo 0)"
@@ -441,9 +464,13 @@ fetch_local() {
 
 # ---- dispatch --------------------------------------------------------------
 
+# Capture the result in its own step so a failed fetch propagates via `set -e`.
+# Folding it into `emit "$(fetch_github)"` would discard the function's exit
+# status and emit an empty document with exit 0.
 case "$SOURCE" in
-  github) emit "$(fetch_github)" ;;
-  gitlab) emit "$(fetch_gitlab)" ;;
-  local)  emit "$(fetch_local)" ;;
+  github) RESULT="$(fetch_github)" ;;
+  gitlab) RESULT="$(fetch_gitlab)" ;;
+  local)  RESULT="$(fetch_local)" ;;
   *) err "unsupported source: $SOURCE"; exit 1 ;;
 esac
+emit "$RESULT"
