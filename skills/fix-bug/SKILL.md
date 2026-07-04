@@ -89,7 +89,13 @@ Write the fix metadata back into `.claude/triage/<id>.json` so `review-changes` 
 
 ### 9. Render artifact
 
-Pipe a JSON envelope to the shared renderer to produce a visual fix report. The renderer writes the HTML and opens it in the browser itself — do NOT run `open`, `xdg-open`, `webbrowser`, or any other browser command afterwards, or the artifact will open twice.
+Produce a visual fix report. Follow the shared routing rule in
+`${CLAUDE_SKILL_DIR}/../../.claude-plugin/references/rendering-artifacts.md`: run the detector, then use Claude Code's
+native Artifact (guided by the `artifact-design` skill) when enabled, or the
+bundled `render-artifact.py` renderer when it is not.
+
+The fix report presents these fields — as designed HTML on the native path, or as
+the `render-artifact.py` envelope below on the fallback path.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
@@ -127,7 +133,7 @@ python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'A
 ARTIFACT_EOF
 ```
 
-**Do not include emojis in any payload text** (titles, summaries, descriptions, callouts, atomicity checks). The renderer styles content with typography and color.
+**Do not include emojis in any content** (titles, summaries, descriptions, callouts, atomicity checks). Both renderers style content with typography and color.
 
 ### 10. Handoff
 Hand off to `commit-changes`. If the user's convention separates test commits from fix commits, stage them as separate logical groups.
@@ -135,7 +141,7 @@ Hand off to `commit-changes`. If the user's convention separates test commits fr
 ## Outputs
 
 1. `.claude/fixes/<id>.md` — repro recipe, test added (file + name), fix description, verification results, atomicity check summary.
-2. Visual HTML artifact opened in the user's browser.
+2. Visual artifact — a native Claude Code artifact (private `claude.ai` URL) when enabled, or a local HTML file opened in the browser on the fallback path.
 3. The actual code changes (test + fix) in the working tree, ready for `commit-changes`.
 4. Updated triage JSON with the `fix` field linked.
 

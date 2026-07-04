@@ -57,7 +57,7 @@ The goal of Phase 1 is a reviewable artifact at `.claude/plans/<issue-id>.md`. *
 
    This is the critical part. After writing the plan:
 
-   - **Render a visual plan artifact** with `kind: "plan"`, `stage: "plan"` by piping to the shared renderer (see schema in "Render artifact" section below). The renderer writes the HTML and opens it in the browser itself — do NOT run `open`, `xdg-open`, `webbrowser`, or any other browser command afterwards, or the artifact will open twice.
+   - **Render a visual plan artifact** with `kind: "plan"`, `stage: "plan"` (see the "Render artifact" section below for the routing rule and content schema).
    - Surface a one-line chat summary with the recommendation to review the artifact and respond.
    - **Stop. Do not write code. Do not proceed to Phase 2 without an explicit affirmative signal.**
    - Acceptable next moves:
@@ -84,7 +84,7 @@ After all steps complete:
 
 5. **Final acceptance check.** Walk through each success criterion from the plan. Each must be demonstrably met — name how it was verified.
 6. **Write the implementation summary** to `.claude/changes/<issue-id>.md` recording which steps ran, verification results, and any deviations from the plan.
-7. **Render the execution artifact** with `kind: "plan"`, `stage: "execution"`, populating each step's `status`. Open it in the browser.
+7. **Render the execution artifact** with `kind: "plan"`, `stage: "execution"`, populating each step's `status` (same routing rule as the gate — see "Render artifact").
 8. **Hand off to `[[commit-changes]]`.** For large changes, hand off per logical cluster of steps rather than one giant commit. Provide the cluster description and the files in scope.
 9. **Update the triage JSON** at `.claude/triage/<issue-id>.json` with:
    ```json
@@ -99,7 +99,15 @@ After all steps complete:
 
 ## Render artifact
 
-Pipe a JSON envelope to the shared renderer at both gate points (after writing the plan, and after Phase 2 completes):
+At both gate points (after writing the plan, and after Phase 2 completes), render
+a visual artifact. Follow the shared routing rule in
+`${CLAUDE_SKILL_DIR}/../../.claude-plugin/references/rendering-artifacts.md`: run
+the detector, then use Claude Code's native Artifact (guided by the
+`artifact-design` skill) when enabled, or the bundled `render-artifact.py`
+renderer when it is not.
+
+The artifact presents these fields — as designed HTML on the native path, or as
+the `render-artifact.py` envelope below on the fallback path.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
@@ -131,7 +139,7 @@ ARTIFACT_EOF
 
 `stage: "plan"` produces the gate artifact (all steps `pending`). `stage: "execution"` produces the final report with per-step status filled in.
 
-**Do not include emojis in any payload text** (titles, summaries, approach, step descriptions, verifications, risks, callouts). The renderer styles content with typography and color.
+**Do not include emojis in any content** (titles, summaries, approach, step descriptions, verifications, risks, callouts). Both renderers style content with typography and color.
 
 ## Outputs
 

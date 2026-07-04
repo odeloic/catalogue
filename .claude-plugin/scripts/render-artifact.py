@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Shared HTML artifact renderer for catalogue skills.
 
+Fallback path only: skills prefer Claude Code's native Artifact publishing
+(guided by the built-in `artifact-design` skill) and drop to this renderer when
+native artifacts are disabled. See `../references/rendering-artifacts.md` and
+`artifact-enabled.sh` for the routing rule.
+
 Reads a JSON envelope from stdin or argv:
   {"kind": "triage"|"review"|"bugfix"|"plan"|"explain", "payload": {...}}
 

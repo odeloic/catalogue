@@ -54,7 +54,15 @@ Comment truncation: if `>100` comments, keep first 5 + last 10, set `comments_to
 
 ## Final report to the user
 
-After writing the triage JSON, render a visual HTML artifact by piping a JSON envelope to the shared renderer via heredoc. The renderer writes the HTML and opens it in the browser itself — do NOT run `open`, `xdg-open`, `webbrowser`, or any other browser command afterwards, or the artifact will open twice.
+After writing the triage JSON, render a visual artifact. Follow the shared
+routing rule in `${CLAUDE_SKILL_DIR}/../../.claude-plugin/references/rendering-artifacts.md`: run the detector, then use
+Claude Code's native Artifact (guided by the `artifact-design` skill) when
+enabled, or the bundled `render-artifact.py` renderer when it is not.
+
+### Artifact content
+
+The report presents these fields — as designed HTML on the native path, or as the
+`render-artifact.py` envelope below on the fallback path.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
@@ -80,9 +88,9 @@ ARTIFACT_EOF
 
 Use `callouts` for: closed/duplicate issue warnings, missing AC, repro steps absent on a bug. Omit any field that doesn't apply.
 
-**Do not include emojis in any payload text** (titles, summaries, descriptions, callouts, AC, notes). The renderer styles content with typography and color — emojis break the visual language.
+**Do not include emojis in any content** (titles, summaries, descriptions, callouts, AC, notes). Both renderers style content with typography and color — emojis break the visual language.
 
-After the renderer exits (it opens the artifact itself), print a one-line chat summary: classification + the artifact path.
+Once the artifact is published/opened, print a one-line chat summary: classification + the artifact URL or path.
 
 ## Edge cases
 - Closed or duplicate: surface prominently at the top of the summary — downstream skills may bail.
