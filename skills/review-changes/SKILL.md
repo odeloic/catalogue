@@ -86,12 +86,19 @@ Pick the recommendation:
   ```
   { "pr_url": "...", "review_path": "...", "recommendation": "...", "at": "ISO-8601" }
   ```
-- Pipe to the shared renderer (see below). The renderer writes the HTML and opens it in the browser itself — do NOT run `open`, `xdg-open`, `webbrowser`, or any other browser command afterwards, or the artifact will open twice.
-- Print a one-line chat summary: recommendation + the artifact path.
+- Render the artifact per step 9 below.
+- Print a one-line chat summary: recommendation + the artifact URL or path.
 
 ### 9. Render artifact
 
-Pipe a JSON envelope to the shared renderer:
+Render a visual artifact. Follow the shared routing rule in
+`${CLAUDE_SKILL_DIR}/../../.claude-plugin/references/rendering-artifacts.md`: run
+the detector, then use Claude Code's native Artifact (guided by the
+`artifact-design` skill) when enabled, or the bundled `render-artifact.py`
+renderer when it is not.
+
+The review presents these fields — as designed HTML on the native path, or as the
+`render-artifact.py` envelope below on the fallback path.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
@@ -120,7 +127,7 @@ ARTIFACT_EOF
 
 Map severities: Blocker → `high`, Major → `medium`, Minor → `low`, Nit → `info`. Omit any field that doesn't apply.
 
-**Do not include emojis in any payload text** (titles, summaries, finding details, AC notes, open questions). The renderer styles content with typography and color.
+**Do not include emojis in any content** (titles, summaries, finding details, AC notes, open questions). Both renderers style content with typography and color.
 
 ## Output review markdown structure
 

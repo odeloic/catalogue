@@ -65,7 +65,16 @@ If the diagram type doesn't fit the question, omit the `mermaid` field; don't fo
 
 ## 5. Render artifact
 
-Always produce a visual HTML artifact for the user — markdown alone reads poorly for explanations. Pipe a JSON envelope to the shared renderer. The renderer writes the HTML and opens it in the browser itself — do NOT run `open`, `xdg-open`, `webbrowser`, or any other browser command afterwards, or the artifact will open twice.
+Always produce a visual artifact for the user — markdown alone reads poorly for
+explanations. Follow the shared routing rule in
+`${CLAUDE_SKILL_DIR}/../../.claude-plugin/references/rendering-artifacts.md`: run the detector, then use Claude Code's
+native Artifact (guided by the `artifact-design` skill) when enabled, or the
+bundled `render-artifact.py` renderer when it is not.
+
+### Artifact content
+
+The explanation presents these fields — as designed HTML on the native path, or
+as the `render-artifact.py` envelope below on the fallback path.
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
@@ -90,13 +99,13 @@ python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'A
 ARTIFACT_EOF
 ```
 
-Include `mermaid` only when the question shape benefits from a diagram (flow, lifecycle, hierarchy, dependency). Pick the diagram type per `references/diagram-types.md`.
+Include `mermaid` only when the question shape benefits from a diagram (flow, lifecycle, hierarchy, dependency). Pick the diagram type per `references/diagram-types.md`. On the native path, render the diagram inline (e.g. as SVG) rather than relying on an external mermaid script — the Artifact CSP blocks external requests.
 
-**Do not include emojis in any payload text** (title, summary, sections, citations, callouts). The renderer styles content with typography and color.
+**Do not include emojis in any content** (title, summary, sections, citations, callouts). Both renderers style content with typography and color.
 
 ## 6. Surface
 
-After the renderer exits (it opens the artifact itself), print a one-line chat summary: the direct answer plus key `file:line` citations.
+Once the artifact is published/opened, print a one-line chat summary: the direct answer plus key `file:line` citations.
 
 ## Edge cases
 
