@@ -1,10 +1,12 @@
 ---
 name: review-changes
-description: Review a pull/merge request or local branch diff against its originating issue's acceptance criteria and against the code itself. Anchors every finding to the diff line it is about, writes a ready-to-paste draft comment for each one, groups findings by sub-project when the diff spans several, and emits a recommendation (`approve` / `request_changes` / `comment`). Reuses `triage` for issue context.
-when_to_use: When the user pastes a PR URL (`github.com/.../pull/N`), an MR URL (`gitlab.com/.../-/merge_requests/N`), a branch name to compare against the default branch, or says "review this PR", "review this MR", "code review for X", "look at these changes", "review the diff on branch X", "what do you think of #123", "review the diff", or "audit this PR". SKIP for pure style/lint pointers (use a linter) or when the user wants you to write the code, not review it.
-argument-hint: "[pr-url | mr-url | branch] [show-fix] [reproduce]"
-arguments: target
-allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/fetch-pr-context.sh *)
+description: >-
+  Review a pull request, merge request, local branch, or raw diff against its
+  originating issue's acceptance criteria and the code itself. Anchors findings
+  to diff lines, drafts ready-to-paste comments, groups multi-project changes,
+  and recommends approve, request changes, or comment. Use for PR or MR URLs,
+  branch reviews, code reviews, diff reviews, and audits. Skip pure linting and
+  requests to implement the code instead of reviewing it.
 ---
 
 # review-changes
@@ -32,8 +34,11 @@ Without `reproduce`: never write repro steps. Point at the diff. If a finding on
 ### 1. Fetch context
 
 ```bash
-${CLAUDE_SKILL_DIR}/scripts/fetch-pr-context.sh $target
+<review-changes-skill-directory>/scripts/fetch-pr-context.sh $target
 ```
+
+Resolve `<review-changes-skill-directory>` from this `SKILL.md` before invoking
+the script.
 
 The script resolves the input in priority order (PR URL → MR URL → branch → raw diff) and writes normalized context to stdout and to `.claude/reviews/<id>.context.json`. It is read-only — it never comments or approves. Auth errors from `gh` / `glab` surface verbatim and halt. `references/github.md` and `references/gitlab.md` cover the underlying commands.
 
@@ -91,7 +96,9 @@ Then:
 - Write `.claude/reviews/<pr-id>.md`.
 - Append to each linked issue's `.claude/triage/<issue-id>.json` under `reviews[]`:
   `{ "pr_url": "...", "review_path": "...", "recommendation": "...", "at": "ISO-8601" }`
-- Render the artifact — content per `references/artifact-payload.md`, routing per `${CLAUDE_SKILL_DIR}/../../.claude-plugin/references/rendering-artifacts.md`.
+- Render the artifact — content per `references/artifact-payload.md`, routing per
+  `../../.codex-plugin/references/rendering-artifacts.md` resolved relative to
+  this `SKILL.md`.
 - Print one line in chat: recommendation, counts by severity, artifact link.
 
 ## Testing

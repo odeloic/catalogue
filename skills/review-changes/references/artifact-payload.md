@@ -1,13 +1,15 @@
 # Review artifact payload
 
-Routing (native Artifact vs. bundled renderer) is decided by the shared rule in `${CLAUDE_SKILL_DIR}/../../.claude-plugin/references/rendering-artifacts.md`. This file only defines what the `review` artifact contains.
+Routing (native Artifact vs. bundled renderer) is decided by the shared rule in
+`../../../.codex-plugin/references/rendering-artifacts.md`, resolved relative to
+this file. This file only defines what the `review` artifact contains.
 
 On the **native path**, build the page so each sub-project is its own tab or section, and each finding shows its diff and its draft comment as separate blocks — the draft comment must be copyable on its own.
 
 On the **fallback path**, pipe this envelope to the bundled renderer:
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
+python3 <plugin-root>/.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
 {
   "kind": "review",
   "payload": {
