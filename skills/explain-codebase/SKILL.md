@@ -1,7 +1,11 @@
 ---
 name: explain-codebase
-description: Read-only investigation of the current repo — search, read the densest hits, and answer with `file:line` citations. Renders an HTML artifact (markdown + optional mermaid diagram) for visual explanations.
-when_to_use: When the user asks "how does X work here", "how does X work in this codebase", "where is Y defined", "where does Y live", "explain Z", "what does X do", "trace the flow from A to B", "what happens when [event]", "walk me through X", "how do A and B connect", "show me visually how X works", "draw a diagram of X", or "diagram the lifecycle of X". Trigger words like "visually", "diagram", "show me", "draw", "render" upgrade the artifact to include a mermaid diagram. SKIP when the user wants code changes (route to `fix-bug` or `ship-change`). SKIP for questions about external libraries with no repo-local relevance.
+description: >-
+  Investigate the current repository read-only and explain findings with
+  file-and-line citations, optionally with a diagram. Use when the user asks how
+  repository code works, where something is defined, what a symbol does, to
+  trace a flow or lifecycle, or to explain or diagram connections. Skip when the
+  user wants code changed or asks only about an external library.
 ---
 
 # explain-codebase
@@ -67,9 +71,8 @@ If the diagram type doesn't fit the question, omit the `mermaid` field; don't fo
 
 Always produce a visual artifact for the user — markdown alone reads poorly for
 explanations. Follow the shared routing rule in
-`${CLAUDE_SKILL_DIR}/../../.claude-plugin/references/rendering-artifacts.md`: run the detector, then use Claude Code's
-native Artifact (guided by the `artifact-design` skill) when enabled, or the
-bundled `render-artifact.py` renderer when it is not.
+`../../.codex-plugin/references/rendering-artifacts.md`, resolved relative to
+this `SKILL.md`.
 
 ### Artifact content
 
@@ -77,7 +80,7 @@ The explanation presents these fields — as designed HTML on the native path, o
 as the `render-artifact.py` envelope below on the fallback path.
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
+python3 <plugin-root>/.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
 {
   "kind": "explain",
   "payload": {
@@ -119,9 +122,9 @@ Once the artifact is published/opened, print a one-line chat summary: the direct
 
 ## Hand-off
 
-When the answer warrants a richer treatment than a markdown explanation + simple diagram, hand off:
-- `/claude-ode:guide` — for a visual learning guide with mental models and flow diagrams.
-- `/claude-ode:showme` — for a step-by-step implementation tutorial with diff-highlighted code.
+When the answer warrants a richer treatment than a markdown explanation and a
+simple diagram, offer a visual learning guide or a step-by-step implementation
+tutorial if a suitable skill is installed.
 
 This skill stays narrow on purpose. The simple mermaid path here covers the common case.
 

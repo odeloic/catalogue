@@ -1,0 +1,30 @@
+{
+  "source": "linear",
+  "id": "ENG-207",
+  "url": "https://linear.app/acme/issue/ENG-207/bulk-export-widgets-to-csv",
+  "title": "Bulk-export widgets to CSV",
+  "author": "lparker",
+  "assignee": "lparker",
+  "status": "in_review",
+  "labels": ["feature", "api"],
+  "issue_type": "Feature",
+  "description": "Tenant admins need a one-click CSV export of every widget in their tenant. Today they page through the UI and copy rows by hand. Add an endpoint that streams a CSV of the caller's tenant widgets.",
+  "acceptance_criteria": [
+    "The CSV includes a header row: id, name, sku, owner_email, created_at",
+    "Only members of a tenant can export that tenant's widgets",
+    "Exports are capped at 10,000 rows; beyond that the caller gets a paginated cursor",
+    "The response streams rather than buffering the whole CSV in memory",
+    "Export completes within 30 seconds for a tenant with 50,000 widgets",
+    "Tests cover the header row, the row cap, and the unauthorized case"
+  ],
+  "comments": [
+    {
+      "author": "dmorel",
+      "body": "owner_email is PII — make sure the tenant check is airtight before this ships."
+    }
+  ],
+  "comments_total": 1,
+  "related": [],
+  "prior_attempts": [],
+  "classification": { "type": "feature", "rule": "label", "confidence": "high" }
+}

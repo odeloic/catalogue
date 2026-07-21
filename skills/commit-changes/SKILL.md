@@ -1,7 +1,12 @@
 ---
 name: commit-changes
-description: Stage and commit changes in the current working tree using the repo's existing commit convention. Auto-detects prefix style (conventional commits, plain, ticket-prefixed, etc.) from the last 50 commits, decides whether to make one commit or split into logical groups, and writes terse subject-only messages (no body unless genuinely warranted). Reads optional context from `.claude/fixes/*.md` (from `fix-bug`) or `.claude/changes/*.md` (from `ship-change`) if present.
-when_to_use: When the user says "commit", "commit this", "commit these changes", "make a commit", "commit and push", "stage and commit", "wrap up with a commit", or asks to finalize work after edits. Also use proactively at the natural end of an implementation task once the user signals completion (e.g. "looks good", "ship it", "we're done"). SKIP if the working tree is clean, or if the user explicitly says "don't commit" / "just stage" / "leave it uncommitted".
+description: >-
+  Stage and commit changes in the current working tree using the repository's
+  existing commit convention. Detects prefix style from recent history, decides
+  whether to make one commit or split logical groups, and writes terse messages.
+  Use when the user asks to commit, stage and commit, wrap up, or finalize edits,
+  including after they say the work is ready to ship. Skip when the tree is clean
+  or the user asks to leave changes uncommitted.
 ---
 
 # commit-changes

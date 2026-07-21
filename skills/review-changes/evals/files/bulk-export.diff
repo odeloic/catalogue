@@ -1,0 +1,74 @@
+diff --git a/lib/widgets/export.rb b/lib/widgets/export.rb
+new file mode 100644
+index 0000000..a1b2c3d
+--- /dev/null
++++ b/lib/widgets/export.rb
+@@ -0,0 +1,26 @@
++require 'csv'
++
++module Widgets
++  class Export
++    HEADER = %w[id name sku owner_email created_at].freeze
++
++    def initialize(scope)
++      @scope = scope
++    end
++
++    def to_csv
++      CSV.generate do |csv|
++        csv << HEADER
++        @scope.each do |widget|
++          csv << row_for(widget)
++        end
++      end
++    end
++
++    private
++
++    def row_for(widget)
++      [widget.id, widget.name, widget.sku, widget.owner.email, widget.created_at]
++    end
++  end
++end
+diff --git a/app/controllers/widgets_controller.rb b/app/controllers/widgets_controller.rb
+index 4d5e6f7..8a9b0c1 100644
+--- a/app/controllers/widgets_controller.rb
++++ b/app/controllers/widgets_controller.rb
+@@ -1,8 +1,17 @@
+ class WidgetsController < ApplicationController
+   before_action :authenticate_user!, only: [:index, :show]
+
+   def index
+     @widgets = current_user.widgets
+   end
++
++  def bulk_export
++    scope = Widget.where(tenant_id: params[:tenant_id])
++    csv = Widgets::Export.new(scope).to_csv
++    send_data csv, filename: "widgets-#{params[:tenant_id]}.csv"
++  end
+ end
+diff --git a/config/routes.rb b/config/routes.rb
+index 1122334..5566778 100644
+--- a/config/routes.rb
++++ b/config/routes.rb
+@@ -3,4 +3,5 @@ Rails.application.routes.draw do
+   resources :widgets, only: [:index, :show]
++  get '/widgets/bulk_export', to: 'widgets#bulk_export'
+ end
+diff --git a/spec/lib/widgets/export_spec.rb b/spec/lib/widgets/export_spec.rb
+new file mode 100644
+index 0000000..2233445
+--- /dev/null
++++ b/spec/lib/widgets/export_spec.rb
+@@ -0,0 +1,12 @@
++require 'rails_helper'
++
++RSpec.describe Widgets::Export do
++  it 'emits a header row' do
++    widget = create(:widget, name: 'Sprocket')
++    csv = described_class.new([widget]).to_csv
++
++    expect(csv.lines.first.strip).to eq('id,name,sku,owner_email,created_at')
++  end
++end

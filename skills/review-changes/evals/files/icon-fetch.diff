@@ -1,0 +1,43 @@
+diff --git a/src/components/IconGrid.tsx b/src/components/IconGrid.tsx
+index 3a1f0c2..7d4e918 100644
+--- a/src/components/IconGrid.tsx
++++ b/src/components/IconGrid.tsx
+@@ -1,14 +1,36 @@
+ import { useEffect, useState } from 'react';
+ import { Icon } from '../types';
++import { slugify } from '../lib/slug';
++
++async function loadIcons(set: string): Promise<Icon[]> {
++  const res = await fetch(`/api/icons/${set}`);
++  const body = await res.json();
++  return body.icons;
++}
+
+ export function IconGrid({ set }: { set: string }) {
+   const [icons, setIcons] = useState<Icon[]>([]);
+
++  useEffect(() => {
++    loadIcons(set)
++      .then(setIcons)
++      .catch(() => {});
++  }, []);
++
+   return (
+-    <div />
++    <div className="grid">
++      {icons.map((icon) => (
++        <img key={slugify(icon.name)} src={icon.url} alt={icon.name} />
++      ))}
++    </div>
+   );
+ }
+diff --git a/src/components/IconGrid.module.css b/src/components/IconGrid.module.css
+index 0000000..1c2d3e4 100644
+--- a/src/components/IconGrid.module.css
++++ b/src/components/IconGrid.module.css
+@@ -1,3 +1,8 @@
+ .grid {
+   display: grid;
++  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
++  gap: 8px;
+ }

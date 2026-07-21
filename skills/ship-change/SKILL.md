@@ -1,7 +1,12 @@
 ---
 name: ship-change
-description: Plan-then-implement a feature, improvement, or change request with an explicit approval gate between plan and execution, then step-by-step verification, then handoff to `commit-changes`. Accepts a triage report, an issue ID/URL (will invoke `triage` first), or a free-form change spec.
-when_to_use: When the user says "implement X", "build X", "ship X", "add X", "ship the thing in ENG-123", "let's build feature Y", "make X work like Z", "refactor X to do Y", "improve X", "let's tackle ABC-7", or when a prior `triage` report classifies the issue as `feature`, `improvement`, or `change`. SKIP for bug fixes — route to `fix-bug`. SKIP if classification is `unknown` with low confidence — confirm with the user first. SKIP for one-line tweaks the user clearly wants done immediately without a plan.
+description: >-
+  Plan and implement a feature, improvement, refactor, or behavior change with
+  an explicit approval gate, step-by-step verification, and a commit handoff.
+  Accepts a triage report, issue ID or URL, or free-form specification. Use when
+  the user asks to implement, build, ship, add, refactor, improve, or tackle a
+  non-bug change. Skip bug fixes, low-confidence unknown classifications, and
+  obvious one-line tweaks requested for immediate execution.
 ---
 
 # ship-change
@@ -101,16 +106,14 @@ After all steps complete:
 
 At both gate points (after writing the plan, and after Phase 2 completes), render
 a visual artifact. Follow the shared routing rule in
-`${CLAUDE_SKILL_DIR}/../../.claude-plugin/references/rendering-artifacts.md`: run
-the detector, then use Claude Code's native Artifact (guided by the
-`artifact-design` skill) when enabled, or the bundled `render-artifact.py`
-renderer when it is not.
+`../../.codex-plugin/references/rendering-artifacts.md`, resolved relative to
+this `SKILL.md`.
 
 The artifact presents these fields — as designed HTML on the native path, or as
 the `render-artifact.py` envelope below on the fallback path.
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
+python3 <plugin-root>/.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
 {
   "kind": "plan",
   "payload": {

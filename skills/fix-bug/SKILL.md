@@ -1,7 +1,12 @@
 ---
 name: fix-bug
-description: Drive a bug fix end-to-end with the discipline of reproduce → failing test (when test infra exists) → minimal fix → atomicity check → handoff to `commit-changes`. Accepts a triage report path, an issue ID/URL (will invoke `triage` first), or a free-form bug description.
-when_to_use: When the user says "fix this bug", "fix the bug in ENG-123 / #42", "reproduce and fix X", "debug and fix Y", "X is broken — fix it", "this is crashing — patch it", "investigate and fix Z", or when a prior `triage` report classifies the issue as `bug`. Also fires on phrases like "why does X fail" combined with an ask to repair. SKIP for feature work, refactors, or behavior changes — route those to `ship-change`. SKIP for pure investigation with no fix expected — route to `explain-codebase`.
+description: >-
+  Drive a bug fix end-to-end through reproduction, a failing test when test
+  infrastructure exists, a minimal fix, an atomicity check, and a commit
+  handoff. Accepts a triage report, issue ID or URL, or free-form description.
+  Use when the user asks to fix, debug and repair, reproduce and patch, or
+  investigate and fix broken or crashing behavior. Skip feature work,
+  refactors, behavior changes, and investigation that does not request a fix.
 ---
 
 # fix-bug
@@ -90,15 +95,14 @@ Write the fix metadata back into `.claude/triage/<id>.json` so `review-changes` 
 ### 9. Render artifact
 
 Produce a visual fix report. Follow the shared routing rule in
-`${CLAUDE_SKILL_DIR}/../../.claude-plugin/references/rendering-artifacts.md`: run the detector, then use Claude Code's
-native Artifact (guided by the `artifact-design` skill) when enabled, or the
-bundled `render-artifact.py` renderer when it is not.
+`../../.codex-plugin/references/rendering-artifacts.md`, resolved relative to
+this `SKILL.md`.
 
 The fix report presents these fields — as designed HTML on the native path, or as
 the `render-artifact.py` envelope below on the fallback path.
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../../.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
+python3 <plugin-root>/.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
 {
   "kind": "bugfix",
   "payload": {
@@ -141,7 +145,8 @@ Hand off to `commit-changes`. If the user's convention separates test commits fr
 ## Outputs
 
 1. `.claude/fixes/<id>.md` — repro recipe, test added (file + name), fix description, verification results, atomicity check summary.
-2. Visual artifact — a native Claude Code artifact (private `claude.ai` URL) when enabled, or a local HTML file opened in the browser on the fallback path.
+2. Visual artifact — a native artifact URL when the current agent supports it,
+   or a local HTML file from the bundled renderer.
 3. The actual code changes (test + fix) in the working tree, ready for `commit-changes`.
 4. Updated triage JSON with the `fix` field linked.
 
