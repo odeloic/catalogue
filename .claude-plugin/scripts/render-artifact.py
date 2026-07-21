@@ -160,6 +160,76 @@ def render_triage(p: dict) -> tuple:
     return ("Triage Report", accent, "".join(parts)), title, p.get("source_url", "")
 
 
+SEV_LABEL = {"high": "Blocker", "medium": "Major", "low": "Minor", "info": "Nit"}
+SEV_CLASS = {"high": "danger", "medium": "warning", "low": "muted", "info": "muted"}
+SEV_ORDER = ("high", "medium", "low", "info")
+
+
+def _group_title(group: dict) -> str:
+    """Section heading for a sub-project group; counts findings, notes file count."""
+    total = len(group.get("findings") or [])
+    name = group.get("name")
+    if not name:
+        return f"Findings ({total})"
+    files = group.get("files_changed")
+    suffix = f", {files} files" if files else ""
+    return f"{name} ({total}{suffix})"
+
+
+def _render_findings(findings: list) -> str:
+    """One finding block: severity + location, what's wrong, the diff, the draft comment."""
+    ordered = sorted(
+        findings,
+        key=lambda f: SEV_ORDER.index((f.get("severity") or "info").lower())
+        if (f.get("severity") or "info").lower() in SEV_ORDER
+        else len(SEV_ORDER),
+    )
+
+    out = []
+    for f in ordered:
+        sev = (f.get("severity") or "info").lower()
+        head = []
+        if f.get("id"):
+            head.append(_chip(f["id"], "chip-mono"))
+        head.append(_chip(SEV_LABEL.get(sev, "Nit"), f'chip-{SEV_CLASS.get(sev, "muted")}'))
+
+        loc = f.get("file") or ""
+        if loc and f.get("line"):
+            loc = f'{loc}:{f["line"]}'
+        loc_html = f'<div class="location">{_esc(loc)}</div>' if loc else ""
+
+        blocks = [
+            f'<div class="chip-row">{"".join(head)}</div>',
+            f'<h3>{_esc(f.get("title", ""))}</h3>',
+            loc_html,
+            _md_paragraphs(f.get("detail", "")),
+        ]
+
+        if f.get("diff"):
+            blocks.append('<div class="block-label">In the diff</div>')
+            blocks.append(_diff_block(f["diff"]))
+
+        if f.get("repro"):
+            blocks.append('<div class="block-label">Reproduced</div>')
+            blocks.append(_code_block(f["repro"]))
+
+        if f.get("fix"):
+            blocks.append('<div class="block-label">Proposed fix</div>')
+            blocks.append(_diff_block(f["fix"]))
+
+        if f.get("draft_comment"):
+            blocks.append(
+                '<div class="draft">'
+                '<div class="draft-label">Draft comment</div>'
+                f'{_md_paragraphs(f["draft_comment"])}'
+                "</div>"
+            )
+
+        out.append(f'<div class="finding">{"".join(blocks)}</div>')
+
+    return "".join(out)
+
+
 def render_review(p: dict) -> tuple:
     recommendation = (p.get("recommendation") or "comment").lower()
     rec_color = {
@@ -200,38 +270,17 @@ def render_review(p: dict) -> tuple:
         )
         parts.append(_section("Acceptance Criteria", table))
 
-    findings_by_sev = {"high": [], "medium": [], "low": [], "info": []}
-    for f in p.get("findings", []):
-        sev = (f.get("severity") or "info").lower()
-        findings_by_sev.setdefault(sev, []).append(f)
+    # Findings arrive grouped by sub-project. A flat findings[] is treated as a
+    # single unnamed group so older payloads keep rendering.
+    groups = p.get("subprojects")
+    if not groups:
+        groups = [{"findings": p.get("findings", [])}] if p.get("findings") else []
 
-    sev_label = {
-        "high": "High severity",
-        "medium": "Medium severity",
-        "low": "Low severity",
-        "info": "Informational",
-    }
-    for sev in ("high", "medium", "low", "info"):
-        fs = findings_by_sev.get(sev, [])
+    for g in groups:
+        fs = g.get("findings") or []
         if not fs:
             continue
-        label = sev_label[sev]
-        items = []
-        for f in fs:
-            loc = ""
-            if f.get("file"):
-                loc = f.get("file", "")
-                if f.get("line"):
-                    loc = f'{loc}:{f["line"]}'
-            loc_html = f'<div class="location">{_esc(loc)}</div>' if loc else ""
-            items.append(
-                f'<div class="finding">'
-                f'<h3>{_esc(f.get("title", ""))}</h3>'
-                f'{loc_html}'
-                f'{_md_paragraphs(f.get("detail", ""))}'
-                f'</div>'
-            )
-        parts.append(_section(f"{label} ({len(fs)})", "".join(items)))
+        parts.append(_section(_group_title(g), _render_findings(fs)))
 
     if p.get("open_questions"):
         items = "".join(f"<li>{_esc_rich(q)}</li>" for q in p["open_questions"])
@@ -746,7 +795,33 @@ pre code { background: none; padding: 0; color: inherit; border: none; }
   border-bottom: 1px solid var(--border);
 }
 .finding:last-child { border-bottom: none; }
-.finding h3 { font-size: 0.98rem; font-weight: 600; color: var(--text); margin: 0 0 0.25rem; }
+.finding h3 { font-size: 0.98rem; font-weight: 600; color: var(--text); margin: 0.3rem 0 0.25rem; }
+.block-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-subtle);
+  margin: 0.85rem 0 0.3rem;
+}
+.draft {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.7rem 0.9rem;
+  margin: 0.9rem 0 0.2rem;
+}
+.draft-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-deep);
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+.draft p { margin: 0 0 0.45rem; }
+.draft p:last-child { margin-bottom: 0; }
 .attempt {
   padding: 0.5rem 0 0.85rem;
   margin: 0;
