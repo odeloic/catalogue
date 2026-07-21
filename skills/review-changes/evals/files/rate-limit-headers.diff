@@ -1,0 +1,55 @@
+diff --git a/src/api/middleware/rate-limit.ts b/src/api/middleware/rate-limit.ts
+index 6f1a2b3..9c4d5e6 100644
+--- a/src/api/middleware/rate-limit.ts
++++ b/src/api/middleware/rate-limit.ts
+@@ -18,10 +18,20 @@ export async function rateLimit(req: Request, res: Response, next: NextFunction)
+   const key = quotaKey(req);
+   const { limit, used, resetAt } = await quota.consume(key);
++  const remaining = Math.max(0, limit - used);
++
++  res.setHeader('X-RateLimit-Limit', String(limit));
++  res.setHeader('X-RateLimit-Remaining', String(remaining));
+
+   if (used > limit) {
++    const retryAfter = Math.max(1, Math.ceil((resetAt - Date.now()) / 1000));
++    res.setHeader('Retry-After', String(retryAfter));
+     res.status(429).json({ error: 'rate_limited' });
+     return;
+   }
+
+   next();
+ }
+diff --git a/src/api/middleware/rate-limit.test.ts b/src/api/middleware/rate-limit.test.ts
+index 1a2b3c4..5d6e7f8 100644
+--- a/src/api/middleware/rate-limit.test.ts
++++ b/src/api/middleware/rate-limit.test.ts
+@@ -12,4 +12,32 @@ describe('rateLimit', () => {
+     expect(next).toHaveBeenCalled();
+   });
++
++  it('sets limit and remaining on a successful response', async () => {
++    quota.consume.mockResolvedValue({ limit: 100, used: 40, resetAt: Date.now() + 60_000 });
++
++    await rateLimit(req, res, next);
++
++    expect(res.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', '100');
++    expect(res.setHeader).toHaveBeenCalledWith('X-RateLimit-Remaining', '60');
++  });
++
++  it('clamps remaining at zero when the quota is blown', async () => {
++    quota.consume.mockResolvedValue({ limit: 100, used: 137, resetAt: Date.now() + 60_000 });
++
++    await rateLimit(req, res, next);
++
++    expect(res.setHeader).toHaveBeenCalledWith('X-RateLimit-Remaining', '0');
++  });
++
++  it('sets Retry-After in seconds on a throttled response', async () => {
++    quota.consume.mockResolvedValue({ limit: 100, used: 101, resetAt: Date.now() + 30_000 });
++
++    await rateLimit(req, res, next);
++
++    expect(res.setHeader).toHaveBeenCalledWith('Retry-After', '30');
++    expect(res.status).toHaveBeenCalledWith(429);
++  });
+ });

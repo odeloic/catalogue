@@ -1,0 +1,97 @@
+{
+  "skill_name": "review-changes",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "can you review the diff in icon-fetch.diff for me",
+      "expected_output": "A review written to .claude/reviews/ plus a rendered artifact. It says there is no linked issue, files the unchecked response, the swallowed error and the stale effect dependency as findings anchored to diff hunks, proposes no fixes, and invents no reproduction steps.",
+      "files": ["evals/files/icon-fetch.diff"],
+      "expectations": [
+        "The review states there is no linked issue and reaches no acceptance-criteria verdicts",
+        "A finding identifies that loadIcons reads res.json() without checking res.ok, so an error body is parsed as icons",
+        "A finding identifies the empty .catch(() => {}) as swallowing the failure with no user-visible signal",
+        "A finding identifies that the useEffect dependency array omits `set`, so changing the set never refetches",
+        "No finding is filed against src/lib/slug or any other file absent from the diff",
+        "No finding contains a fix diff or a corrected code snippet, because show-fix was not set; quoting the author's own unmodified hunk does not count as proposing code",
+        "No finding contains reproduction steps or commands to run, because reproduce was not set",
+        "Every finding quotes, in a fenced block, the diff hunk it refers to",
+        "The review contains at least one draft comment, and every draft comment is 60 words or fewer and ends in a question mark",
+        "No draft comment opens with praise or with a restatement of what the author's code does",
+        "The recommendation is request_changes"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review bulk-export.diff against ENG-207. The triage report is already fetched, it's in triage-ENG-207.json. show-fix",
+      "expected_output": "A review with an acceptance-criteria table covering all six ENG-207 criteria using the Met / Partial / Missing / Can't-tell statuses, blocker findings for the missing tenant authorization, a proposed fix diff on each finding, and a request_changes recommendation.",
+      "files": [
+        "evals/files/bulk-export.diff",
+        "evals/files/triage-ENG-207.json"
+      ],
+      "expectations": [
+        "The acceptance-criteria table has one row per criterion in ENG-207 (six rows)",
+        "The header-row criterion is marked Met and cites a file:line from the diff",
+        "The tenant-authorization criterion is marked as not satisfied (Missing, Not met, or an unambiguous equivalent)",
+        "The 10,000-row cap criterion is marked as not satisfied (Missing, Not met, or an unambiguous equivalent)",
+        "The 50,000-widget / 30-second criterion is marked as not determinable from the diff, distinctly from Met, Partial and Missing",
+        "If an artifact payload is emitted, the 50,000-widget criterion carries status `unknown` there, not `partial`",
+        "The tests criterion is marked Partial and names which cases are untested",
+        "A Blocker-severity finding identifies that bulk_export is absent from the before_action :authenticate_user! list",
+        "A finding identifies that params[:tenant_id] is trusted without verifying the caller belongs to that tenant",
+        "A finding connects the exposure of owner_email to the missing authorization, whether or not it uses the word PII",
+        "Every finding carries a proposed fix, because show-fix was set",
+        "Each proposed fix is expressed as a diff rather than prose",
+        "The recommendation is request_changes",
+        "A reviews[] entry recording pr_url, review_path, recommendation and at is appended to the ENG-207 triage report, at whichever path that report occupies"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "This is a monorepo: web/storefront is a pnpm package with its own package.json, services/billing is a Go module with its own go.mod. Review monorepo-checkout.diff.",
+      "expected_output": "A review whose findings are grouped by owning sub-project with per-group ID prefixes, repo root last, the cross-project coupon-field mismatch anchored to the storefront rename that caused it, the logged payment token flagged as a blocker, and the generated pb.go not reviewed line by line.",
+      "files": ["evals/files/monorepo-checkout.diff"],
+      "expectations": [
+        "Findings are grouped into exactly three sections named web/storefront, services/billing and repo root",
+        "The repo root group is listed last, even though it contains a Blocker",
+        "Finding IDs carry a short per-group prefix derived from the directory rather than one flat sequence",
+        "A finding identifies that web/storefront sends discountCode while services/billing reads req.CouponCode, so coupons silently stop applying",
+        "That cross-project finding is anchored to the changed rename line in web/storefront/src/checkout/submit.ts and therefore filed under web/storefront",
+        "That cross-project finding names services/billing in its first sentence as the side that breaks",
+        "A Blocker-severity finding identifies log.Printf writing req.Token into the logs",
+        "At most one finding takes services/billing/gen/billing.pb.go as its subject, and it asks whether the file is in sync with its source rather than critiquing its contents",
+        "A finding identifies that `|| true` on the go test step masks billing test failures",
+        "The recommendation is request_changes"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "review rate-limit-headers.diff against ENG-233, triage report is at triage-ENG-233.json",
+      "expected_output": "A review that marks all four ENG-233 criteria Met with citations and recommends approve, without manufacturing findings on correct, idiomatic, tested code.",
+      "files": [
+        "evals/files/rate-limit-headers.diff",
+        "evals/files/triage-ENG-233.json"
+      ],
+      "expectations": [
+        "All four ENG-233 criteria are marked Met, each citing a file:line or a quoted hunk from the diff",
+        "The recommendation is approve",
+        "No finding is rated Blocker or Major",
+        "The review names at least one thing it could not verify from the diff alone, such as the runtime value of resetAt or the behaviour of quota.consume",
+        "The summary is three sentences or fewer and says what the change does"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "review the diff on branch refactor/auth-overhaul — run the fetch script with FETCH_PR_MODE=fixture, we have no network here",
+      "expected_output": "A review dominated by its pre-flight section: unmerged dependency ENG-499, xlarge size with an explicit coverage declaration, and auth paths marked sensitive. It reports honestly that the available diff is too thin to review rather than inventing findings.",
+      "files": ["tests/fixtures/local/refactor_auth-overhaul.json"],
+      "expectations": [
+        "A pre-flight section flags that depends_on is non-empty (ENG-499) and says to review that dependency first",
+        "Pre-flight flags the xlarge size class and states a prioritisation consequence, not just the label",
+        "The review declares its coverage: what was read closely versus what was skimmed",
+        "Pre-flight flags the src/auth/ paths as sensitive and warranting line-by-line reading",
+        "The review explicitly reports that no CI checks ran, rather than omitting CI or describing it as failing",
+        "The review states that the fetched diff is too thin to review, instead of filing findings about code it never saw"
+      ]
+    }
+  ]
+}

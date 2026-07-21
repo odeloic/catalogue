@@ -1,0 +1,23 @@
+{
+  "source": "linear",
+  "id": "ENG-233",
+  "url": "https://linear.app/acme/issue/ENG-233/surface-rate-limit-headers",
+  "title": "Surface rate-limit headers on the public API",
+  "author": "schen",
+  "assignee": "schen",
+  "status": "in_review",
+  "labels": ["improvement", "api"],
+  "issue_type": "Improvement",
+  "description": "Clients have no way to see how much quota they have left, so they back off blindly on the first 429. Emit the standard rate-limit headers on every public API response.",
+  "acceptance_criteria": [
+    "Every public API response carries X-RateLimit-Limit and X-RateLimit-Remaining",
+    "A throttled response also carries Retry-After in seconds",
+    "Remaining never goes below zero",
+    "The change is covered by tests"
+  ],
+  "comments": [],
+  "comments_total": 0,
+  "related": [],
+  "prior_attempts": [],
+  "classification": { "type": "improvement", "rule": "label", "confidence": "high" }
+}
