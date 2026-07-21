@@ -1,7 +1,7 @@
 {
   "name": "catalogue",
   "description": "Catalogue of reusable skills and workflows",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "author": {
     "name": "Loïc Ishimwe",
     "url": "https://github.com/odeloic"
