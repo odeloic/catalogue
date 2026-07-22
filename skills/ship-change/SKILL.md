@@ -109,8 +109,7 @@ a visual artifact. Follow the shared routing rule in
 `../../.codex-plugin/references/rendering-artifacts.md`, resolved relative to
 this `SKILL.md`.
 
-The artifact presents these fields — as designed HTML on the native path, or as
-the `render-artifact.py` envelope below on the fallback path.
+The artifact presents these fields, piped to `render-artifact.py`.
 
 ```bash
 python3 <plugin-root>/.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'

@@ -1,12 +1,13 @@
 # Review artifact payload
 
-Routing (native Artifact vs. bundled renderer) is decided by the shared rule in
+Rendering follows the shared rule in
 `../../../.codex-plugin/references/rendering-artifacts.md`, resolved relative to
-this file. This file only defines what the `review` artifact contains.
+this file. This file only defines what the `review` artifact contains. The
+renderer groups each sub-project into its own section and shows every finding's
+diff and draft comment as separate blocks (the draft comment stays copyable on
+its own).
 
-On the **native path**, build the page so each sub-project is its own tab or section, and each finding shows its diff and its draft comment as separate blocks — the draft comment must be copyable on its own.
-
-On the **fallback path**, pipe this envelope to the bundled renderer:
+Pipe this envelope to the renderer:
 
 ```bash
 python3 <plugin-root>/.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'

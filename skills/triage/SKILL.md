@@ -64,8 +64,7 @@ relative to this `SKILL.md`.
 
 ### Artifact content
 
-The report presents these fields — as designed HTML on the native path, or as the
-`render-artifact.py` envelope below on the fallback path.
+The report presents these fields, piped to `render-artifact.py`.
 
 ```bash
 python3 <plugin-root>/.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'

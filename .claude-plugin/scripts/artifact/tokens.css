@@ -1,0 +1,165 @@
+/* ============================================================
+   FOUNDATIONS — GitHub Primer, all-mono, compact
+   Single source of truth. Components read these vars; they
+   never hard-code hex, size, or spacing.
+
+   Theme resolves from the OS (prefers-color-scheme) and is
+   overridden in both directions by [data-theme] on :root.
+   ============================================================ */
+
+:root,
+:root[data-theme="light"] {
+  /* neutrals — faint cool bias, chosen not defaulted */
+  --canvas:        #ffffff;
+  --canvas-subtle: #f6f8fa;
+  --canvas-inset:  #f6f8fa;
+  --border:        #d0d7de;
+  --border-muted:  #d8dee4;
+  --fg:            #1f2328;
+  --fg-muted:      #656d76;
+  --fg-subtle:     #6e7781;
+  /* accent — interaction only (links, focus, primary action) */
+  --accent-fg:        #0969da;
+  --accent-emphasis:  #0969da;
+  --accent-subtle:    #ddf4ff;
+  /* semantic — status & meaning, separate from accent */
+  --success-fg:       #1a7f37;
+  --success-emphasis: #1f883d;
+  --attention-fg:     #9a6700;
+  --attention-subtle: #fff8c5;
+  --danger-fg:        #cf222e;
+  --danger-emphasis:  #cf222e;
+  --danger-subtle:    #ffebe9;
+  --done-fg:          #8250df;
+  --done-subtle:      #fbefff;
+  /* diff — dedicated line + word tokens */
+  --diff-add-bg:     #e6ffec;
+  --diff-add-word:   #abf2bc;
+  --diff-add-marker: #1a7f37;
+  --diff-del-bg:     #ffebe9;
+  --diff-del-word:   #ffd7d5;
+  --diff-del-marker: #cf222e;
+  /* misc */
+  --neutral-muted: rgba(175, 184, 193, 0.2);
+  --shadow: 0 1px 0 rgba(31, 35, 40, 0.04), 0 1px 3px rgba(31, 35, 40, 0.10);
+  --overlay: color-mix(in srgb, var(--canvas) 88%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas:        #0d1117;
+    --canvas-subtle: #161b22;
+    --canvas-inset:  #010409;
+    --border:        #30363d;
+    --border-muted:  #21262d;
+    --fg:            #e6edf3;
+    --fg-muted:      #9198a1;
+    --fg-subtle:     #6e7681;
+    --accent-fg:        #4493f8;
+    --accent-emphasis:  #1f6feb;
+    --accent-subtle:    rgba(56, 139, 253, 0.15);
+    --success-fg:       #3fb950;
+    --success-emphasis: #238636;
+    --attention-fg:     #d29922;
+    --attention-subtle: rgba(187, 128, 9, 0.15);
+    --danger-fg:        #f85149;
+    --danger-emphasis:  #da3633;
+    --danger-subtle:    rgba(248, 81, 73, 0.15);
+    --done-fg:          #a371f7;
+    --done-subtle:      rgba(163, 113, 247, 0.15);
+    --diff-add-bg:     rgba(46, 160, 67, 0.15);
+    --diff-add-word:   rgba(46, 160, 67, 0.40);
+    --diff-add-marker: #3fb950;
+    --diff-del-bg:     rgba(248, 81, 73, 0.15);
+    --diff-del-word:   rgba(248, 81, 73, 0.40);
+    --diff-del-marker: #f85149;
+    --neutral-muted: rgba(110, 118, 129, 0.40);
+    --shadow: 0 0 0 transparent;
+  }
+}
+
+:root[data-theme="dark"] {
+  --canvas:        #0d1117;
+  --canvas-subtle: #161b22;
+  --canvas-inset:  #010409;
+  --border:        #30363d;
+  --border-muted:  #21262d;
+  --fg:            #e6edf3;
+  --fg-muted:      #9198a1;
+  --fg-subtle:     #6e7681;
+  --accent-fg:        #4493f8;
+  --accent-emphasis:  #1f6feb;
+  --accent-subtle:    rgba(56, 139, 253, 0.15);
+  --success-fg:       #3fb950;
+  --success-emphasis: #238636;
+  --attention-fg:     #d29922;
+  --attention-subtle: rgba(187, 128, 9, 0.15);
+  --danger-fg:        #f85149;
+  --danger-emphasis:  #da3633;
+  --danger-subtle:    rgba(248, 81, 73, 0.15);
+  --done-fg:          #a371f7;
+  --done-subtle:      rgba(163, 113, 247, 0.15);
+  --diff-add-bg:     rgba(46, 160, 67, 0.15);
+  --diff-add-word:   rgba(46, 160, 67, 0.40);
+  --diff-add-marker: #3fb950;
+  --diff-del-bg:     rgba(248, 81, 73, 0.15);
+  --diff-del-word:   rgba(248, 81, 73, 0.40);
+  --diff-del-marker: #f85149;
+  --neutral-muted: rgba(110, 118, 129, 0.40);
+  --shadow: 0 0 0 transparent;
+}
+
+:root {
+  /* type — one monospace family, every role */
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Code",
+    "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --t-xs: 11px;
+  --t-sm: 12px;
+  --t-base: 13px;
+  --t-md: 14px;
+  --t-lg: 16px;
+  --t-xl: 20px;
+  --t-2xl: 26px;
+  /* weight */
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+  /* space — 4px rhythm */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-6: 24px;
+  --s-8: 32px;
+  /* shape */
+  --radius: 6px;
+  --radius-sm: 4px;
+  --radius-pill: 999px;
+}
+
+/* base reset applied to the story/app root */
+.ds-root {
+  background: var(--canvas);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: var(--t-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-variant-ligatures: none;
+}
+.ds-root *,
+.ds-root *::before,
+.ds-root *::after { box-sizing: border-box; }
+
+.ds-root :focus-visible {
+  outline: 2px solid var(--accent-fg);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-root *, .ds-root *::before, .ds-root *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

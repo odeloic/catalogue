@@ -1,6 +1,6 @@
 # Diagram types
 
-Mermaid cheat sheet. Pick the type from the question shape. Each example below renders standalone — copy, edit, save as `.mmd`, run `render-mermaid.sh`.
+Mermaid cheat sheet. Pick the type from the question shape. Put the chosen diagram source in the explain payload's `mermaid` field — the renderer draws it.
 
 ## sequenceDiagram — for flow / trace
 

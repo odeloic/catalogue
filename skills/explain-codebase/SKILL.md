@@ -76,8 +76,7 @@ this `SKILL.md`.
 
 ### Artifact content
 
-The explanation presents these fields — as designed HTML on the native path, or
-as the `render-artifact.py` envelope below on the fallback path.
+The explanation presents these fields, piped to `render-artifact.py`.
 
 ```bash
 python3 <plugin-root>/.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
@@ -102,7 +101,7 @@ python3 <plugin-root>/.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
 ARTIFACT_EOF
 ```
 
-Include `mermaid` only when the question shape benefits from a diagram (flow, lifecycle, hierarchy, dependency). Pick the diagram type per `references/diagram-types.md`. On the native path, render the diagram inline (e.g. as SVG) rather than relying on an external mermaid script — the Artifact CSP blocks external requests.
+Include `mermaid` only when the question shape benefits from a diagram (flow, lifecycle, hierarchy, dependency). Pick the diagram type per `references/diagram-types.md`. The renderer draws it with mermaid, themed to match the artifact.
 
 **Do not include emojis in any content** (title, summary, sections, citations, callouts). Both renderers style content with typography and color.
 

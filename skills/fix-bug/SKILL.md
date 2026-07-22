@@ -98,8 +98,7 @@ Produce a visual fix report. Follow the shared routing rule in
 `../../.codex-plugin/references/rendering-artifacts.md`, resolved relative to
 this `SKILL.md`.
 
-The fix report presents these fields — as designed HTML on the native path, or as
-the `render-artifact.py` envelope below on the fallback path.
+The fix report presents these fields, piped to `render-artifact.py`.
 
 ```bash
 python3 <plugin-root>/.claude-plugin/scripts/render-artifact.py <<'ARTIFACT_EOF'
@@ -145,8 +144,7 @@ Hand off to `commit-changes`. If the user's convention separates test commits fr
 ## Outputs
 
 1. `.claude/fixes/<id>.md` — repro recipe, test added (file + name), fix description, verification results, atomicity check summary.
-2. Visual artifact — a native artifact URL when the current agent supports it,
-   or a local HTML file from the bundled renderer.
+2. Visual artifact — a self-contained HTML file from the bundled renderer.
 3. The actual code changes (test + fix) in the working tree, ready for `commit-changes`.
 4. Updated triage JSON with the `fix` field linked.
 
